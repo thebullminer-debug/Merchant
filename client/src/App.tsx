@@ -7,6 +7,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import Home from "@/pages/home";
 import { SearchPage } from "@/pages/search";
+import { MarketsPage } from "@/pages/markets";
+import { AnalyticsPage } from "@/pages/analytics";
 import ItemDetail from "@/pages/item-detail";
 import NotFound from "@/pages/not-found";
 
@@ -15,6 +17,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/search" component={SearchPage} />
+      <Route path="/markets" component={MarketsPage} />
+      <Route path="/analytics" component={AnalyticsPage} />
       <Route path="/item/:id" component={ItemDetail} />
       <Route component={NotFound} />
     </Switch>
