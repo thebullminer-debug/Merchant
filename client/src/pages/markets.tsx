@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, CreditCard, Disc3, Coins, Trophy, Car, Shield, Palette, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+import { Watch, Zap, Disc, Coins, Trophy, Car, Shield, Palette, TrendingUp, TrendingDown, BarChart3, Star } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Category, Collectible } from "@shared/schema";
 
@@ -16,9 +16,9 @@ interface MarketData extends Collectible {
 }
 
 const categoryIcons = {
-  "Watches": Clock,
-  "Trading Cards": CreditCard,
-  "Vinyl Records": Disc3,
+  "Watches": Watch,
+  "Trading Cards": Zap,
+  "Vinyl Records": Disc,
   "Coins": Coins,
   "Sports Collectibles": Trophy,
   "Collector Cars": Car,

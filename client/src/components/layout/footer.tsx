@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <ChartLine className="text-primary-foreground text-sm" />
               </div>
-              <span className="text-xl font-bold text-foreground">CollectiMarket</span>
+              <span className="text-xl font-bold text-foreground">Merchant</span>
             </div>
             <p className="text-muted-foreground mb-4">
               The leading platform for collectibles price tracking and market analysis.
@@ -117,7 +117,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-muted-foreground">
-            &copy; 2024 CollectiMarket. All rights reserved. Data aggregated from multiple marketplace sources.
+            &copy; 2024 Merchant. All rights reserved. Data aggregated from multiple marketplace sources.
           </p>
         </div>
       </div>
