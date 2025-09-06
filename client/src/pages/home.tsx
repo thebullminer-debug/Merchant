@@ -84,7 +84,7 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=600&h=600&fit=crop&crop=center"
+                  src="@assets/81Q7HZYO1rL._SX522__1757200803184.jpg"
                   alt="Beatles Abbey Road Vinyl Record"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -102,8 +102,8 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=600&h=600&fit=crop&crop=center"
-                  alt="Vintage Baseball Card"
+                  src="@assets/mantle-card-getty_1757200876816.webp"
+                  alt="Mickey Mantle 1952 Topps Baseball Card"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
