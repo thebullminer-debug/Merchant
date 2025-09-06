@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCollectibleSchema, insertCategorySchema } from "@shared/schema";
+import { marketplaceScraperService } from "./services/marketplace-scraper";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -152,6 +153,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch price alerts" });
+    }
+  });
+
+  // Marketplace data endpoints
+  app.get("/api/markets", async (req, res) => {
+    try {
+      const { category, sort } = req.query;
+      const collectibles = await storage.getCollectibles(category as string);
+      
+      // Add mock market data for demo
+      const marketData = collectibles.map(item => ({
+        ...item,
+        currentPrice: Math.floor(Math.random() * 50000) + 1000,
+        priceChange: (Math.random() - 0.5) * 20,
+        marketCap: Math.floor(Math.random() * 1000000) + 100000,
+        volume24h: Math.floor(Math.random() * 100000) + 10000
+      }));
+
+      res.json(marketData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch market data" });
+    }
+  });
+
+  app.get("/api/analytics/overview", async (req, res) => {
+    try {
+      const stats = await storage.getMarketStats();
+      
+      // Mock analytics data
+      const overview = {
+        totalMarketCap: parseFloat(stats.totalValue) || 5000000,
+        totalVolume24h: 850000,
+        avgPriceChange: 2.3,
+        activeListings: stats.totalItems || 0,
+        topGainers: [
+          { id: '1', name: 'Rolex Submariner', priceChange: 8.5, currentPrice: 12500 },
+          { id: '2', name: 'Mickey Mantle 1952', priceChange: 6.2, currentPrice: 95000 }
+        ],
+        topLosers: [
+          { id: '3', name: 'Pokemon Charizard', priceChange: -3.1, currentPrice: 8500 }
+        ]
+      };
+
+      res.json(overview);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics overview" });
+    }
+  });
+
+  app.get("/api/analytics/categories", async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      
+      // Mock category stats
+      const categoryStats = categories.map(cat => ({
+        categoryId: cat.id,
+        categoryName: cat.name,
+        marketCap: Math.floor(Math.random() * 2000000) + 500000,
+        volume24h: Math.floor(Math.random() * 200000) + 50000,
+        priceChange: (Math.random() - 0.5) * 15,
+        itemCount: Math.floor(Math.random() * 50) + 10
+      }));
+
+      res.json(categoryStats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch category analytics" });
+    }
+  });
+
+  // Real-time price update endpoint
+  app.post("/api/collectibles/:id/update-price", async (req, res) => {
+    try {
+      const result = await marketplaceScraperService.updateSpecificCollectible(req.params.id);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update prices" });
+    }
+  });
+
+  // Watchlist endpoints
+  app.get("/api/watchlist", async (req, res) => {
+    try {
+      // Mock watchlist data for now
+      const watchlist = [
+        { id: '1', collectibleId: '30ede095-8a47-43d4-9178-88509239a07a', addedAt: new Date() },
+        { id: '2', collectibleId: 'dcbce0d4-1ffb-4dd0-8d32-20cd81095a21', addedAt: new Date() }
+      ];
+      res.json(watchlist);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch watchlist" });
+    }
+  });
+
+  app.post("/api/watchlist/:id", async (req, res) => {
+    try {
+      // Mock add to watchlist
+      res.json({ success: true, message: "Added to watchlist" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add to watchlist" });
+    }
+  });
+
+  app.delete("/api/watchlist/:id", async (req, res) => {
+    try {
+      // Mock remove from watchlist
+      res.json({ success: true, message: "Removed from watchlist" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove from watchlist" });
     }
   });
 

@@ -9,6 +9,7 @@ import Home from "@/pages/home";
 import { SearchPage } from "@/pages/search";
 import { MarketsPage } from "@/pages/markets";
 import { AnalyticsPage } from "@/pages/analytics";
+import { WatchlistPage } from "@/pages/watchlist";
 import ItemDetail from "@/pages/item-detail";
 import NotFound from "@/pages/not-found";
 
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/search" component={SearchPage} />
       <Route path="/markets" component={MarketsPage} />
       <Route path="/analytics" component={AnalyticsPage} />
+      <Route path="/watchlist" component={WatchlistPage} />
       <Route path="/item/:id" component={ItemDetail} />
       <Route component={NotFound} />
     </Switch>
