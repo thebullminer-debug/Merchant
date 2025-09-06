@@ -17,7 +17,7 @@ export function Header() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <ChartLine className="text-primary-foreground text-sm" />
               </div>
-              <span className="text-xl font-bold text-foreground">CollectiMarket</span>
+              <span className="text-xl font-bold text-foreground">Merchant</span>
             </Link>
           </div>
 
