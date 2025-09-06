@@ -67,7 +67,7 @@ export function PriceAlerts() {
                 
                 return (
                   <div
-                    key={alert.id}
+                    key={`${alert.id}-${index}`}
                     className="flex items-center justify-between py-3 border-b border-border last:border-b-0"
                     data-testid={`price-alert-${index}`}
                   >

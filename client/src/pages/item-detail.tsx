@@ -3,29 +3,59 @@ import { useParams } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PriceChart } from "@/components/price-chart";
-import { Star, Heart, Share2, ExternalLink, Calendar, Tag } from "lucide-react";
+import { Star, Heart, Share2, ExternalLink, Calendar, Tag, TrendingUp, TrendingDown, Eye, Clock, DollarSign } from "lucide-react";
+import { useState } from "react";
 import type { Collectible } from "@shared/schema";
+
+interface ItemDetails extends Collectible {
+  currentPrice?: number;
+  priceChange?: number;
+  priceChangePercent?: number;
+  activeListings?: number;
+  avgPrice30d?: number;
+  avgPrice90d?: number;
+  priceHistory?: Array<{
+    date: string;
+    price: number;
+  }>;
+}
 
 export default function ItemDetail() {
   const { id } = useParams<{ id: string }>();
+  const [isWatchlisted, setIsWatchlisted] = useState(false);
 
-  const { data: collectible, isLoading, error } = useQuery<Collectible>({
+  const { data: collectible, isLoading, error } = useQuery<ItemDetails>({
     queryKey: ["/api/collectibles", id],
     enabled: !!id,
   });
 
-  const { data: currentPrice } = useQuery<{ price: number; change: number; activeListings: number }>({
-    queryKey: ["/api/collectibles", id, "current-price"],
-    enabled: !!id,
-  });
+  const handleWatchlist = () => {
+    setIsWatchlisted(!isWatchlisted);
+    // TODO: Implement actual watchlist API call
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.share({
+        title: collectible?.name,
+        text: `Check out this ${collectible?.name} on Merchant`,
+        url: window.location.href,
+      });
+    } catch {
+      // Fallback to clipboard
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
 
   if (isLoading) {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="loading-shimmer h-96 w-full rounded-xl mb-6"></div>
+          <div className="lg:col-span-2 space-y-6">
+            <div className="loading-shimmer h-96 w-full rounded-xl"></div>
+            <div className="loading-shimmer h-64 w-full rounded-xl"></div>
           </div>
           <div className="space-y-6">
             <Card className="bg-card border border-border">
@@ -61,12 +91,116 @@ export default function ItemDetail() {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content - Chart */}
-        <div className="lg:col-span-2">
-          <PriceChart collectibleId={collectible.id} collectibleName={collectible.name} />
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Price Chart */}
+          <Card className="bg-card border border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl">Price History</CardTitle>
+                <div className="flex items-center space-x-2">
+                  {collectible.priceChange !== undefined && (
+                    <Badge 
+                      variant={collectible.priceChange >= 0 ? "default" : "destructive"}
+                      className="flex items-center gap-1"
+                    >
+                      {collectible.priceChange >= 0 ? (
+                        <TrendingUp className="w-3 h-3" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3" />
+                      )}
+                      {collectible.priceChange >= 0 ? '+' : ''}{collectible.priceChange?.toFixed(1)}%
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <PriceChart collectibleId={collectible.id} collectibleName={collectible.name} />
+            </CardContent>
+          </Card>
+
+          {/* Item Details Tabs */}
+          <Card className="bg-card border border-border">
+            <CardContent className="p-6">
+              <Tabs defaultValue="details" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="market">Market Data</TabsTrigger>
+                  <TabsTrigger value="listings">Active Listings</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-4 mt-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Brand</label>
+                      <p className="text-foreground">{collectible.brand || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Model</label>
+                      <p className="text-foreground">{collectible.model || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Year</label>
+                      <p className="text-foreground">{collectible.year || "Not specified"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Condition</label>
+                      <p className="text-foreground">{collectible.condition || "Not specified"}</p>
+                    </div>
+                  </div>
+                  {collectible.description && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Description</label>
+                      <p className="text-foreground mt-1">{collectible.description}</p>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="market" className="space-y-4 mt-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <DollarSign className="w-6 h-6 mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">30-Day Average</p>
+                      <p className="text-lg font-bold">
+                        {collectible.avgPrice30d ? `$${collectible.avgPrice30d.toLocaleString()}` : "N/A"}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <DollarSign className="w-6 h-6 mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">90-Day Average</p>
+                      <p className="text-lg font-bold">
+                        {collectible.avgPrice90d ? `$${collectible.avgPrice90d.toLocaleString()}` : "N/A"}
+                      </p>
+                    </div>
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <Eye className="w-6 h-6 mx-auto mb-2 text-primary" />
+                      <p className="text-sm text-muted-foreground">Active Listings</p>
+                      <p className="text-lg font-bold">{collectible.activeListings || 0}</p>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="listings" className="mt-6">
+                  <div className="text-center py-8">
+                    <ExternalLink className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-medium mb-2">View Live Listings</h3>
+                    <p className="text-muted-foreground mb-4">
+                      See current marketplace listings for this item
+                    </p>
+                    <Button variant="outline" asChild>
+                      <a href={`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(collectible.name)}`} target="_blank" rel="noopener noreferrer">
+                        View on eBay
+                      </a>
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Sidebar - Item Details */}
+        {/* Sidebar */}
         <div className="space-y-6">
           {/* Item Image and Basic Info */}
           <Card className="bg-card border border-border">
@@ -75,11 +209,14 @@ export default function ItemDetail() {
                 <img
                   src={collectible.imageUrl}
                   alt={collectible.name}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
-                  data-testid="item-image"
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    img.style.display = 'none';
+                  }}
                 />
               ) : (
-                <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center mb-4">
+                <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center mb-4">
                   <span className="text-muted-foreground">No image available</span>
                 </div>
               )}
@@ -88,139 +225,87 @@ export default function ItemDetail() {
                 {collectible.name}
               </h1>
               
-              {collectible.description && (
-                <p className="text-muted-foreground mb-4" data-testid="item-description">
-                  {collectible.description}
-                </p>
-              )}
-
-              {/* Price Information */}
-              {currentPrice && (
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Current Median:</span>
-                    <span className="font-bold text-foreground text-lg" data-testid="current-price">
-                      ${currentPrice.price.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">24h Change:</span>
-                    <span 
-                      className={`font-bold ${currentPrice.change >= 0 ? 'price-positive' : 'price-negative'}`}
-                      data-testid="price-change"
-                    >
-                      {currentPrice.change >= 0 ? '+' : ''}{currentPrice.change.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Active Listings:</span>
-                    <span className="text-foreground" data-testid="active-listings">
-                      {currentPrice.activeListings}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex space-x-2 mb-6">
-                <Button className="flex-1" data-testid="button-add-watchlist">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Add to Watchlist
-                </Button>
-                <Button variant="outline" size="icon" data-testid="button-share">
-                  <Share2 className="w-4 h-4" />
-                </Button>
+              <div className="flex items-center space-x-2 mb-4">
+                <Badge variant="secondary">{collectible.brand}</Badge>
+                {collectible.year && <Badge variant="outline">{collectible.year}</Badge>}
               </div>
 
-              {/* Item Metadata */}
-              <div className="space-y-3 border-t border-border pt-4">
-                {collectible.brand && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Brand:</span>
-                    <span className="text-foreground font-medium" data-testid="item-brand">
-                      {collectible.brand}
-                    </span>
-                  </div>
+              <div className="text-center py-4 border-t border-b border-border">
+                <p className="text-sm text-muted-foreground mb-1">Current Market Price</p>
+                <p className="text-3xl font-bold text-primary" data-testid="current-price">
+                  {collectible.currentPrice ? `$${collectible.currentPrice.toLocaleString()}` : "Price unavailable"}
+                </p>
+                {collectible.priceChangePercent !== undefined && (
+                  <p className={`text-sm flex items-center justify-center gap-1 ${
+                    collectible.priceChangePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {collectible.priceChangePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {collectible.priceChangePercent >= 0 ? '+' : ''}{collectible.priceChangePercent.toFixed(1)}% (24h)
+                  </p>
                 )}
-                
-                {collectible.model && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Model:</span>
-                    <span className="text-foreground" data-testid="item-model">
-                      {collectible.model}
-                    </span>
-                  </div>
-                )}
+              </div>
 
-                {collectible.year && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Year:</span>
-                    <span className="text-foreground" data-testid="item-year">
-                      {collectible.year}
-                    </span>
-                  </div>
-                )}
-
-                {collectible.condition && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Condition:</span>
-                    <Badge variant="secondary" data-testid="item-condition">
-                      {collectible.condition}
-                    </Badge>
-                  </div>
-                )}
-
-                {collectible.tags && collectible.tags.length > 0 && (
-                  <div>
-                    <span className="text-muted-foreground mb-2 block">Tags:</span>
-                    <div className="flex flex-wrap gap-1">
-                      {collectible.tags.map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs" data-testid={`tag-${index}`}>
-                          <Tag className="w-3 h-3 mr-1" />
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Added:</span>
-                  <span className="text-muted-foreground" data-testid="item-created">
-                    <Calendar className="w-4 h-4 inline mr-1" />
-                    {new Date(collectible.createdAt!).toLocaleDateString()}
-                  </span>
-                </div>
+              <div className="flex space-x-2 mt-4">
+                <Button 
+                  onClick={handleWatchlist}
+                  variant={isWatchlisted ? "default" : "outline"}
+                  className="flex-1"
+                  data-testid="button-watchlist"
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isWatchlisted ? 'fill-current' : ''}`} />
+                  {isWatchlisted ? 'Watchlisted' : 'Add to Watchlist'}
+                </Button>
+                <Button 
+                  onClick={handleShare}
+                  variant="outline"
+                  size="icon"
+                  data-testid="button-share"
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Market Sources */}
+          {/* Quick Stats */}
           <Card className="bg-card border border-border">
             <CardHeader>
-              <CardTitle className="text-lg">Price Sources</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Tag className="w-5 h-5" />
+                Quick Stats
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Category</span>
+                <span className="font-medium">{collectible.categoryId || "General"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Added</span>
+                <span className="font-medium">{new Date(collectible.createdAt!).toLocaleDateString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Last Updated</span>
+                <span className="font-medium">{new Date(collectible.updatedAt!).toLocaleDateString()}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Price Alert */}
+          <Card className="bg-card border border-border">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Price Alert
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-foreground">eBay</span>
-                  <Button variant="ghost" size="sm" data-testid="button-view-ebay">
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-foreground">TCGPlayer</span>
-                  <Button variant="ghost" size="sm" data-testid="button-view-tcgplayer">
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-foreground">Discogs</span>
-                  <Button variant="ghost" size="sm" data-testid="button-view-discogs">
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get notified when the price drops below your target
+              </p>
+              <Button variant="outline" className="w-full" data-testid="button-set-alert">
+                Set Price Alert
+              </Button>
             </CardContent>
           </Card>
         </div>
