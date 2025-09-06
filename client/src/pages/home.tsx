@@ -98,21 +98,21 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Charizard Pokemon Card */}
+            {/* Mickey Mantle Baseball Card */}
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Charizard Pokemon Card"
+                  src="https://images.unsplash.com/photo-1578320339221-c4e6adeff2b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Mickey Mantle Baseball Card"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <CardHeader>
-                <CardTitle className="text-xl">Charizard Base Set 1st Edition</CardTitle>
-                <p className="text-2xl font-bold text-primary">$45,000</p>
+                <CardTitle className="text-xl">Mickey Mantle 1952 Topps</CardTitle>
+                <p className="text-2xl font-bold text-primary">$95,000</p>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Holographic Charizard from the original Pokemon set. Trading cards have exploded in value.</p>
+                <p className="text-muted-foreground">Legendary Yankees baseball card. One of the most valuable sports cards ever produced.</p>
               </CardContent>
             </Card>
           </div>
