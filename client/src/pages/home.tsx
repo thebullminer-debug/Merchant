@@ -15,7 +15,7 @@ export default function Home() {
       <section className="gradient-bg rounded-xl p-8 mb-8">
         <div className="text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Track Collectibles Like <span className="text-primary">Stocks</span>
+            Your Collectibles <span className="text-primary">Price Oracle</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             Get real-time pricing data and historical trends for watches, trading cards, and vinyl records from multiple marketplaces.
