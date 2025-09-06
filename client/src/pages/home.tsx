@@ -52,40 +52,69 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Categories Grid */}
+        {/* Featured Examples */}
         <section className="space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-foreground">Browse Categories</h2>
+            <h2 className="text-3xl font-bold text-foreground">High-Value Collectibles</h2>
             <p className="text-lg text-muted-foreground">
-              Discover collectibles across all major categories
+              Examples of valuable items tracked on our platform
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => {
-              const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons] || Clock;
-              return (
-                <Card 
-                  key={category.id} 
-                  className="group hover:shadow-lg transition-shadow cursor-pointer border-border hover:border-primary/20"
-                  data-testid={`category-${category.slug}`}
-                >
-                  <CardHeader className="text-center pb-2">
-                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-                      <IconComponent className="w-6 h-6 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      {category.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-center text-sm">
-                      {category.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Rolex Submariner */}
+            <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="aspect-square overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Rolex Submariner"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-xl">Rolex Submariner Date</CardTitle>
+                <p className="text-2xl font-bold text-primary">$12,800</p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Iconic diving watch with black ceramic bezel. A cornerstone of luxury watch collecting.</p>
+              </CardContent>
+            </Card>
+
+            {/* Beatles Abbey Road Vinyl */}
+            <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="aspect-square overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Beatles Abbey Road Vinyl"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-xl">The Beatles - Abbey Road</CardTitle>
+                <p className="text-2xl font-bold text-primary">$8,500</p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Original pressing of the legendary final album. Vinyl records are experiencing unprecedented demand.</p>
+              </CardContent>
+            </Card>
+
+            {/* Charizard Pokemon Card */}
+            <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="aspect-square overflow-hidden">
+                <img 
+                  src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Charizard Pokemon Card"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardHeader>
+                <CardTitle className="text-xl">Charizard Base Set 1st Edition</CardTitle>
+                <p className="text-2xl font-bold text-primary">$45,000</p>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Holographic Charizard from the original Pokemon set. Trading cards have exploded in value.</p>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
