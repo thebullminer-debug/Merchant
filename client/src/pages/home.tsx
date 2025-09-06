@@ -8,6 +8,8 @@ import { MarketStats } from "@/components/market-stats";
 import { PriceAlerts } from "@/components/price-alerts";
 import { Clock, CreditCard, Disc3, Coins, Trophy, Car, Shield, Palette, ArrowRight } from "lucide-react";
 import type { Category } from "@shared/schema";
+import beatlesImage from "@/assets/beatles-abbey-road.jpg";
+import mantleImage from "@/assets/mickey-mantle-card.webp";
 
 const categoryIcons = {
   "Watches": Clock,
@@ -84,7 +86,7 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="@assets/81Q7HZYO1rL._SX522__1757200803184.jpg"
+                  src={beatlesImage}
                   alt="Beatles Abbey Road Vinyl Record"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -102,7 +104,7 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="@assets/mantle-card-getty_1757200876816.webp"
+                  src={mantleImage}
                   alt="Mickey Mantle 1952 Topps Baseball Card"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
