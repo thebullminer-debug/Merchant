@@ -84,8 +84,8 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Beatles Abbey Road Vinyl"
+                  src="https://images.unsplash.com/photo-1611348586804-61bf6c080437?w=600&h=600&fit=crop&crop=center"
+                  alt="Beatles Abbey Road Vinyl Record"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -102,8 +102,8 @@ export default function Home() {
             <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="aspect-square overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1578320339221-c4e6adeff2b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Mickey Mantle Baseball Card"
+                  src="https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=600&h=600&fit=crop&crop=center"
+                  alt="Vintage Baseball Card"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
