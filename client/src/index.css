@@ -10,13 +10,13 @@
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(214, 32%, 12%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(51, 100%, 50%);
+  --primary: hsl(45, 85%, 55%);
   --primary-foreground: hsl(0, 0%, 0%);
   --secondary: hsl(214, 32%, 15%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --muted: hsl(214, 32%, 15%);
   --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(51, 100%, 50%);
+  --accent: hsl(45, 85%, 55%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(210, 40%, 98%);
@@ -59,13 +59,13 @@
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(214, 32%, 12%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(51, 100%, 50%);
+  --primary: hsl(45, 85%, 55%);
   --primary-foreground: hsl(0, 0%, 0%);
   --secondary: hsl(214, 32%, 15%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --muted: hsl(214, 32%, 15%);
   --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(51, 100%, 50%);
+  --accent: hsl(45, 85%, 55%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(210, 40%, 98%);
@@ -152,24 +152,20 @@
     100% { background-position: 200% 0; }
   }
 
-  /* Pure Gold Effects */
+  /* Rich Gold Effects */
   .bg-primary {
-    background: #FFD700;
+    background: #DAA520;
     color: #000000;
     border: 1px solid #B8860B;
-    box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   }
 
   .bg-primary:hover {
-    background: #FFED4E;
-    box-shadow: 
-      0 4px 8px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: #E6B800;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .text-primary {
-    color: #FFD700;
+    color: #DAA520;
   }
 }
