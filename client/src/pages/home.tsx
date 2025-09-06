@@ -5,6 +5,7 @@ import { CategoryFilter } from "@/components/category-filter";
 import { TrendingItems } from "@/components/trending-items";
 import { MarketStats } from "@/components/market-stats";
 import { PriceAlerts } from "@/components/price-alerts";
+import { FeaturedItem } from "@/components/featured-item";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -39,6 +40,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured Collectible - Rolex Watch with Chart */}
+      <FeaturedItem collectibleId="30ede095-8a47-43d4-9178-88509239a07a" />
 
       {/* Category Filters */}
       <CategoryFilter
