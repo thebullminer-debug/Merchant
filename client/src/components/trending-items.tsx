@@ -69,9 +69,9 @@ export function TrendingItems() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {trendingItems.map((item) => (
+          {trendingItems.map((item, index) => (
             <Card
-              key={item.id}
+              key={`${item.id}-${index}`}
               className="bg-card border border-border card-hover cursor-pointer"
               onClick={() => handleItemClick(item)}
               data-testid={`trending-item-${item.id}`}
