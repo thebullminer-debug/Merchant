@@ -198,23 +198,35 @@
     100% { transform: translateX(-100%) translateY(-100%) rotate(25deg); }
   }
 
-  /* Flowing Wave Background */
-  .bg-background {
-    position: relative;
+  /* Fixed Gold Flow Background Symbol */
+  body:before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120vw;
+    height: 120vh;
+    background-image: 
+      /* Main flowing curve */
+      radial-gradient(ellipse 400px 80px at 30% 45%, rgba(218, 165, 32, 0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 500px 100px at 70% 55%, rgba(255, 215, 0, 0.06) 0%, transparent 70%),
+      /* Secondary curves */
+      radial-gradient(ellipse 300px 60px at 25% 35%, rgba(184, 134, 11, 0.05) 0%, transparent 70%),
+      radial-gradient(ellipse 350px 70px at 75% 65%, rgba(218, 165, 32, 0.04) 0%, transparent 70%),
+      /* Subtle accent curves */
+      radial-gradient(ellipse 200px 40px at 15% 25%, rgba(255, 215, 0, 0.03) 0%, transparent 70%),
+      radial-gradient(ellipse 250px 50px at 85% 75%, rgba(184, 134, 11, 0.03) 0%, transparent 70%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.7;
   }
 
-  .bg-background:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-      radial-gradient(ellipse 800px 600px at 50% 0%, rgba(218, 165, 32, 0.1) 0%, transparent 50%),
-      linear-gradient(135deg, transparent 0%, rgba(255, 215, 0, 0.03) 25%, transparent 50%, rgba(184, 134, 11, 0.05) 75%, transparent 100%);
-    pointer-events: none;
-    z-index: 0;
+  /* Enhanced Page Background */
+  .bg-background {
+    position: relative;
   }
 
   /* Wave flowing animation for hero sections */
