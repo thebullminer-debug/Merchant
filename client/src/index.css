@@ -198,33 +198,49 @@
     100% { transform: translateX(-100%) translateY(-100%) rotate(25deg); }
   }
 
-  /* TEST - Very Visible Gold Background */
+  /* Beautiful Flowing Gold Wave Background */
   body::after {
-    content: 'GOLD WAVE PATTERN';
+    content: '';
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80vw;
-    height: 300px;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: 
-      linear-gradient(45deg, 
-        #FFD700 0%, 
-        #DAA520 25%, 
-        #B8860B 50%, 
-        #DAA520 75%, 
-        #FFD700 100%
+      /* Main flowing wave inspired by your reference */
+      radial-gradient(ellipse 800px 150px at 20% 30%, 
+        rgba(255, 215, 0, 0.3) 0%, 
+        rgba(218, 165, 32, 0.2) 50%, 
+        transparent 100%
+      ),
+      radial-gradient(ellipse 1000px 200px at 80% 70%, 
+        rgba(184, 134, 11, 0.25) 0%, 
+        rgba(255, 215, 0, 0.15) 50%, 
+        transparent 100%
+      ),
+      /* Secondary curved flow */
+      radial-gradient(ellipse 600px 120px at 60% 20%, 
+        rgba(218, 165, 32, 0.2) 0%, 
+        rgba(184, 134, 11, 0.1) 50%, 
+        transparent 100%
+      ),
+      radial-gradient(ellipse 700px 140px at 30% 80%, 
+        rgba(255, 215, 0, 0.18) 0%, 
+        rgba(218, 165, 32, 0.1) 50%, 
+        transparent 100%
+      ),
+      /* Accent curves for depth */
+      radial-gradient(ellipse 400px 80px at 10% 50%, 
+        rgba(184, 134, 11, 0.15) 0%, 
+        transparent 70%
+      ),
+      radial-gradient(ellipse 500px 100px at 90% 40%, 
+        rgba(255, 215, 0, 0.12) 0%, 
+        transparent 70%
       );
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: bold;
-    color: black;
-    opacity: 0.8;
+    background-size: 100% 100%;
     pointer-events: none;
-    z-index: 1000;
+    z-index: -1;
   }
 
   /* Enhanced Page Background */
