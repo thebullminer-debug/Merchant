@@ -198,35 +198,33 @@
     100% { transform: translateX(-100%) translateY(-100%) rotate(25deg); }
   }
 
-  /* Fixed Gold Flow Background Symbol */
-  body {
+  /* TEST - Very Visible Gold Background */
+  body::after {
+    content: 'GOLD WAVE PATTERN';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80vw;
+    height: 300px;
     background: 
-      /* Bold flowing wave pattern */
-      conic-gradient(from 45deg at 25% 40%, 
-        transparent 0deg, 
-        rgba(255, 215, 0, 0.8) 30deg, 
-        rgba(218, 165, 32, 0.9) 60deg, 
-        rgba(184, 134, 11, 0.7) 90deg, 
-        transparent 120deg
-      ),
-      /* Secondary wave */
-      conic-gradient(from 225deg at 75% 60%, 
-        transparent 0deg, 
-        rgba(184, 134, 11, 0.6) 30deg, 
-        rgba(255, 215, 0, 0.8) 60deg, 
-        rgba(218, 165, 32, 0.5) 90deg, 
-        transparent 120deg
-      ),
-      /* Base gold glow */
-      radial-gradient(ellipse 1200px 400px at center, 
-        rgba(255, 215, 0, 0.2) 0%, 
-        rgba(218, 165, 32, 0.1) 40%, 
-        transparent 80%
-      ),
-      #0c0a09;
-    background-attachment: fixed;
-    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-    background-repeat: no-repeat;
+      linear-gradient(45deg, 
+        #FFD700 0%, 
+        #DAA520 25%, 
+        #B8860B 50%, 
+        #DAA520 75%, 
+        #FFD700 100%
+      );
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: black;
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 1000;
   }
 
   /* Enhanced Page Background */
