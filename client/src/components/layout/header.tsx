@@ -37,6 +37,9 @@ export function Header() {
             <Link href="/watchlist" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-watchlist">
               Watchlist
             </Link>
+            <Link href="/portfolio" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-portfolio">
+              Portfolio
+            </Link>
             <Link href="/analytics" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-analytics">
               Analytics
             </Link>
@@ -70,6 +73,9 @@ export function Header() {
               </Link>
               <Link href="/watchlist" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-watchlist-mobile">
                 Watchlist
+              </Link>
+              <Link href="/portfolio" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-portfolio-mobile">
+                Portfolio
               </Link>
               <Link href="/analytics" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-analytics-mobile">
                 Analytics

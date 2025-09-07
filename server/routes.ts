@@ -280,6 +280,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comprehensive seed endpoint
+  app.post("/api/seed-comprehensive", async (_req, res) => {
+    try {
+      const { seedDatabase } = await import("./seed-data");
+      await seedDatabase();
+      res.json({ message: "Comprehensive database seeded successfully" });
+    } catch (error) {
+      console.error("Comprehensive seeding error:", error);
+      res.status(500).json({ message: "Failed to seed comprehensive database" });
+    }
+  });
+
+  // Portfolio endpoints
+  app.get("/api/portfolio", async (_req, res) => {
+    try {
+      // Mock portfolio data for now
+      const portfolio = [
+        {
+          id: "1",
+          collectibleId: "30ede095-8a47-43d4-9178-88509239a07a", 
+          collectible: {
+            id: "30ede095-8a47-43d4-9178-88509239a07a",
+            name: "Rolex Submariner Date",
+            description: "Iconic diving watch",
+            categoryId: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+            brand: "Rolex",
+            model: "126610LN",
+            year: 2020,
+            condition: "Excellent",
+            imageUrl: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+            tags: ["luxury", "diving"],
+            metadata: {},
+            createdAt: new Date(),
+            updatedAt: new Date()
+          },
+          purchasePrice: 11500,
+          purchaseDate: "2023-06-15",
+          quantity: 1,
+          currentPrice: 12800,
+          totalValue: 12800,
+          gain: 1300,
+          gainPercent: 11.3
+        }
+      ];
+      res.json(portfolio);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch portfolio" });
+    }
+  });
+
+  app.get("/api/portfolio/stats", async (_req, res) => {
+    try {
+      const stats = {
+        totalValue: 137800,
+        totalGain: 31300,
+        totalGainPercent: 29.4,
+        totalInvested: 106500,
+        itemCount: 2
+      };
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch portfolio stats" });
+    }
+  });
+
+  app.post("/api/portfolio", async (req, res) => {
+    try {
+      // Mock add to portfolio
+      const { collectibleId, purchasePrice, quantity, purchaseDate } = req.body;
+      res.json({ 
+        success: true, 
+        message: "Added to portfolio",
+        item: { collectibleId, purchasePrice, quantity, purchaseDate }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add to portfolio" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

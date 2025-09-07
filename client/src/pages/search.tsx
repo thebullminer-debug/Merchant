@@ -111,12 +111,12 @@ export function SearchPage() {
                     {/* Category Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Category</label>
-                      <Select value={selectedCategory || ""} onValueChange={(value) => setSelectedCategory(value || null)}>
+                      <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Categories</SelectItem>
+                          <SelectItem value="all">All Categories</SelectItem>
                           {categories.map((category) => (
                             <SelectItem key={category.id} value={category.id}>
                               {category.name}
