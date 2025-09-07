@@ -205,23 +205,22 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 120vw;
-    height: 120vh;
+    width: 150vw;
+    height: 150vh;
     background-image: 
-      /* Main flowing curve */
-      radial-gradient(ellipse 400px 80px at 30% 45%, rgba(218, 165, 32, 0.08) 0%, transparent 70%),
-      radial-gradient(ellipse 500px 100px at 70% 55%, rgba(255, 215, 0, 0.06) 0%, transparent 70%),
-      /* Secondary curves */
-      radial-gradient(ellipse 300px 60px at 25% 35%, rgba(184, 134, 11, 0.05) 0%, transparent 70%),
-      radial-gradient(ellipse 350px 70px at 75% 65%, rgba(218, 165, 32, 0.04) 0%, transparent 70%),
-      /* Subtle accent curves */
-      radial-gradient(ellipse 200px 40px at 15% 25%, rgba(255, 215, 0, 0.03) 0%, transparent 70%),
-      radial-gradient(ellipse 250px 50px at 85% 75%, rgba(184, 134, 11, 0.03) 0%, transparent 70%);
+      /* Main flowing curve - more visible */
+      radial-gradient(ellipse 600px 120px at 25% 40%, rgba(218, 165, 32, 0.25) 0%, rgba(255, 215, 0, 0.15) 40%, transparent 80%),
+      radial-gradient(ellipse 700px 140px at 75% 60%, rgba(255, 215, 0, 0.20) 0%, rgba(218, 165, 32, 0.12) 40%, transparent 80%),
+      /* Secondary flowing curves */
+      radial-gradient(ellipse 500px 90px at 20% 30%, rgba(184, 134, 11, 0.18) 0%, rgba(218, 165, 32, 0.10) 50%, transparent 80%),
+      radial-gradient(ellipse 550px 100px at 80% 70%, rgba(218, 165, 32, 0.15) 0%, rgba(255, 215, 0, 0.08) 50%, transparent 80%),
+      /* Accent curves */
+      radial-gradient(ellipse 350px 70px at 10% 20%, rgba(255, 215, 0, 0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 80px at 90% 80%, rgba(184, 134, 11, 0.10) 0%, transparent 70%);
     background-size: 100% 100%;
     background-repeat: no-repeat;
     pointer-events: none;
     z-index: -1;
-    opacity: 0.7;
   }
 
   /* Enhanced Page Background */
