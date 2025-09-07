@@ -31,27 +31,27 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* TEST: Very Visible Fixed Element */}
+        {/* Beautiful Flowing Gold Wave Background */}
         <div 
           style={{
             position: 'fixed',
-            top: '20px',
-            right: '20px',
-            width: '300px',
-            height: '100px',
-            backgroundColor: '#FFD700',
-            color: '#000',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '18px',
-            fontWeight: 'bold',
-            zIndex: 9999,
-            border: '3px solid #B8860B'
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: `
+              radial-gradient(ellipse 800px 150px at 25% 40%, rgba(255, 215, 0, 0.25) 0%, rgba(218, 165, 32, 0.15) 60%, transparent 100%),
+              radial-gradient(ellipse 1000px 200px at 75% 60%, rgba(184, 134, 11, 0.2) 0%, rgba(255, 215, 0, 0.12) 60%, transparent 100%),
+              radial-gradient(ellipse 600px 120px at 60% 20%, rgba(218, 165, 32, 0.18) 0%, rgba(184, 134, 11, 0.08) 60%, transparent 100%),
+              radial-gradient(ellipse 700px 140px at 30% 80%, rgba(255, 215, 0, 0.15) 0%, rgba(218, 165, 32, 0.1) 60%, transparent 100%),
+              radial-gradient(ellipse 400px 80px at 10% 50%, rgba(184, 134, 11, 0.12) 0%, transparent 70%),
+              radial-gradient(ellipse 500px 100px at 90% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 70%)
+            `,
+            backgroundSize: '100% 100%',
+            pointerEvents: 'none',
+            zIndex: 0
           }}
-        >
-          FIXED GOLD ELEMENT TEST
-        </div>
+        />
         <div className="min-h-screen bg-background text-foreground dark">
           <Header />
           <Router />
