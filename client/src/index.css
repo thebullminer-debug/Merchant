@@ -105,8 +105,15 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
     font-family: var(--font-sans);
+    background: 
+      /* VERY VISIBLE GOLD WAVE PATTERN */
+      linear-gradient(45deg, #FFD700 0%, transparent 25%, #DAA520 50%, transparent 75%, #B8860B 100%),
+      linear-gradient(135deg, #B8860B 0%, transparent 25%, #FFD700 50%, transparent 75%, #DAA520 100%),
+      hsl(214, 32%, 8%);
+    background-attachment: fixed;
+    background-size: 300px 300px, 400px 400px, 100% 100%;
   }
 }
 
