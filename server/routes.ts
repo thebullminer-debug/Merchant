@@ -264,6 +264,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Seed database endpoint (for development)
+  app.post("/api/seed", async (_req, res) => {
+    try {
+      const { quickSeed } = await import("./simple-seed");
+      const success = await quickSeed();
+      if (success) {
+        res.json({ message: "Database seeded successfully" });
+      } else {
+        res.status(500).json({ message: "Seeding partially failed" });
+      }
+    } catch (error) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ message: "Failed to seed database" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
