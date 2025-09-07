@@ -152,24 +152,98 @@
     100% { background-position: 200% 0; }
   }
 
-  /* Flowing Gold Effects */
+  /* Luxury Gold Effects */
   .bg-primary {
-    background: linear-gradient(135deg, #D4A574 0%, #E4B429 40%, #C9A961 100%);
+    background: linear-gradient(135deg, #B8860B 0%, #DAA520 25%, #FFD700 50%, #F4A460 75%, #CD853F 100%);
     color: #000000;
-    border: 1px solid #B8860B;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid #8B7355;
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bg-primary:before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    transform: rotate(25deg);
+    animation: shimmer 3s ease-in-out infinite;
   }
 
   .bg-primary:hover {
-    background: linear-gradient(135deg, #E4B574 0%, #F4C439 40%, #D9B971 100%);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #CD9B1D 0%, #EDB930 25%, #FFE135 50%, #FFB347 75%, #D2691E 100%);
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
   }
 
   .text-primary {
-    background: linear-gradient(135deg, #D4A574 0%, #E4B429 40%, #C9A961 100%);
+    background: linear-gradient(135deg, #B8860B 0%, #DAA520 25%, #FFD700 50%, #F4A460 75%, #CD853F 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    font-weight: 600;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(25deg); }
+    50% { transform: translateX(100%) translateY(100%) rotate(25deg); }
+    100% { transform: translateX(-100%) translateY(-100%) rotate(25deg); }
+  }
+
+  /* Flowing Wave Background */
+  .bg-background {
+    position: relative;
+  }
+
+  .bg-background:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(ellipse 800px 600px at 50% 0%, rgba(218, 165, 32, 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, transparent 0%, rgba(255, 215, 0, 0.03) 25%, transparent 50%, rgba(184, 134, 11, 0.05) 75%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Wave flowing animation for hero sections */
+  .hero-waves {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-waves:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 300%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      rgba(218, 165, 32, 0.1) 25%,
+      rgba(255, 215, 0, 0.15) 50%,
+      rgba(218, 165, 32, 0.1) 75%,
+      transparent 100%);
+    animation: wave-flow 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @keyframes wave-flow {
+    0% { transform: translateX(-50%); }
+    50% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
   }
 }

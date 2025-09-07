@@ -31,8 +31,8 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Hero Section */}
-        <section className="text-center space-y-6">
-          <div className="space-y-4">
+        <section className="text-center space-y-6 hero-waves py-12">
+          <div className="space-y-4 relative z-10">
             <h1 className="text-5xl md:text-6xl font-bold text-foreground">
               Welcome to <span className="text-primary">Merchant</span>
             </h1>
