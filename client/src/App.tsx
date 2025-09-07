@@ -31,20 +31,6 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* SOLID GOLD BACKGROUND TEST */}
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: '#FFD700',
-            pointerEvents: 'none',
-            zIndex: 0,
-            opacity: 0.2
-          }}
-        />
         <div className="min-h-screen bg-background text-foreground dark">
           <Header />
           <Router />

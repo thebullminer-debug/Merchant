@@ -70,16 +70,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCollectibles(categoryId?: string, limit = 50, offset = 0): Promise<Collectible[]> {
-    const query = db.select().from(collectibles);
-    
     if (categoryId) {
-      query.where(eq(collectibles.categoryId, categoryId));
+      return await db.select().from(collectibles)
+        .where(eq(collectibles.categoryId, categoryId))
+        .orderBy(desc(collectibles.createdAt))
+        .limit(limit)
+        .offset(offset);
+    } else {
+      return await db.select().from(collectibles)
+        .orderBy(desc(collectibles.createdAt))
+        .limit(limit)
+        .offset(offset);
     }
-    
-    return await query
-      .orderBy(desc(collectibles.createdAt))
-      .limit(limit)
-      .offset(offset);
   }
 
   async getCollectible(id: string): Promise<Collectible | undefined> {
@@ -88,17 +90,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchCollectibles(query: string, categoryId?: string): Promise<Collectible[]> {
-    let dbQuery = db.select().from(collectibles)
-      .where(sql`${collectibles.name} ILIKE ${`%${query}%`} OR ${collectibles.brand} ILIKE ${`%${query}%`} OR ${collectibles.model} ILIKE ${`%${query}%`}`);
+    const searchCondition = sql`${collectibles.name} ILIKE ${`%${query}%`} OR ${collectibles.brand} ILIKE ${`%${query}%`} OR ${collectibles.model} ILIKE ${`%${query}%`}`;
     
     if (categoryId) {
-      dbQuery = dbQuery.where(and(
-        sql`${collectibles.name} ILIKE ${`%${query}%`} OR ${collectibles.brand} ILIKE ${`%${query}%`} OR ${collectibles.model} ILIKE ${`%${query}%`}`,
-        eq(collectibles.categoryId, categoryId)
-      ));
+      return await db.select().from(collectibles)
+        .where(and(searchCondition, eq(collectibles.categoryId, categoryId)))
+        .limit(20);
+    } else {
+      return await db.select().from(collectibles)
+        .where(searchCondition)
+        .limit(20);
     }
-    
-    return await dbQuery.limit(20);
   }
 
   async createCollectible(collectible: InsertCollectible): Promise<Collectible> {
@@ -106,9 +108,9 @@ export class DatabaseStorage implements IStorage {
     return newCollectible;
   }
 
-  async updateCollectible(id: string, collectible: Partial<InsertCollectible>): Promise<Collectible> {
+  async updateCollectible(id: string, updateData: Partial<InsertCollectible>): Promise<Collectible> {
     const [updated] = await db.update(collectibles)
-      .set({ ...collectible, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(collectibles.id, id))
       .returning();
     return updated;
