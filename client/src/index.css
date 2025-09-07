@@ -199,44 +199,34 @@
   }
 
   /* Fixed Gold Flow Background Symbol */
-  body:before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+  body {
     background: 
-      /* Main flowing wave - curved like your reference */
-      linear-gradient(
-        45deg,
-        transparent 20%,
-        rgba(218, 165, 32, 0.4) 25%,
-        rgba(255, 215, 0, 0.6) 30%,
-        rgba(184, 134, 11, 0.5) 35%,
-        rgba(218, 165, 32, 0.3) 40%,
-        transparent 45%
+      /* Bold flowing wave pattern */
+      conic-gradient(from 45deg at 25% 40%, 
+        transparent 0deg, 
+        rgba(255, 215, 0, 0.8) 30deg, 
+        rgba(218, 165, 32, 0.9) 60deg, 
+        rgba(184, 134, 11, 0.7) 90deg, 
+        transparent 120deg
       ),
-      /* Secondary wave flowing underneath */
-      linear-gradient(
-        135deg,
-        transparent 60%,
-        rgba(184, 134, 11, 0.3) 65%,
-        rgba(255, 215, 0, 0.5) 70%,
-        rgba(218, 165, 32, 0.4) 75%,
-        rgba(184, 134, 11, 0.2) 80%,
-        transparent 85%
+      /* Secondary wave */
+      conic-gradient(from 225deg at 75% 60%, 
+        transparent 0deg, 
+        rgba(184, 134, 11, 0.6) 30deg, 
+        rgba(255, 215, 0, 0.8) 60deg, 
+        rgba(218, 165, 32, 0.5) 90deg, 
+        transparent 120deg
       ),
-      /* Accent wave */
-      radial-gradient(
-        ellipse 800px 200px at 30% 40%,
-        rgba(255, 215, 0, 0.3) 0%,
-        rgba(218, 165, 32, 0.2) 50%,
-        transparent 100%
-      );
+      /* Base gold glow */
+      radial-gradient(ellipse 1200px 400px at center, 
+        rgba(255, 215, 0, 0.2) 0%, 
+        rgba(218, 165, 32, 0.1) 40%, 
+        transparent 80%
+      ),
+      #0c0a09;
     background-attachment: fixed;
-    pointer-events: none;
-    z-index: -1;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+    background-repeat: no-repeat;
   }
 
   /* Enhanced Page Background */
