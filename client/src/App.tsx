@@ -31,24 +31,27 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* Fixed Gold Wave Background Element */}
+        {/* TEST: Very Visible Fixed Element */}
         <div 
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: `
-              linear-gradient(45deg, #FFD700 0%, transparent 25%, #DAA520 50%, transparent 75%, #B8860B 100%),
-              linear-gradient(135deg, #B8860B 0%, transparent 25%, #FFD700 50%, transparent 75%, #DAA520 100%)
-            `,
-            backgroundSize: '200px 200px, 300px 300px',
-            pointerEvents: 'none',
-            zIndex: -1,
-            opacity: 0.4
+            top: '20px',
+            right: '20px',
+            width: '300px',
+            height: '100px',
+            backgroundColor: '#FFD700',
+            color: '#000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            zIndex: 9999,
+            border: '3px solid #B8860B'
           }}
-        />
+        >
+          FIXED GOLD ELEMENT TEST
+        </div>
         <div className="min-h-screen bg-background text-foreground dark">
           <Header />
           <Router />
