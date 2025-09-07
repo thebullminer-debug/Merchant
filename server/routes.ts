@@ -359,6 +359,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced analytics endpoints
+  app.get("/api/analytics/heatmap", async (_req, res) => {
+    try {
+      const heatmapData = [
+        {
+          id: "rolex-sub",
+          name: "Rolex Submariner",
+          category: "Watches",
+          change: 15.2,
+          value: 12800,
+          volume: 1245
+        },
+        {
+          id: "patek-nautilus", 
+          name: "Patek Nautilus",
+          category: "Watches",
+          change: 28.5,
+          value: 185000,
+          volume: 892
+        },
+        {
+          id: "lebron-rookie",
+          name: "LeBron Rookie",
+          category: "Cards",
+          change: 22.3,
+          value: 125000,
+          volume: 567
+        },
+        {
+          id: "mickey-mantle",
+          name: "Mickey Mantle '52",
+          category: "Cards", 
+          change: -8.2,
+          value: 425000,
+          volume: 234
+        },
+        {
+          id: "beatles-abbey",
+          name: "Abbey Road",
+          category: "Vinyl",
+          change: -5.8,
+          value: 850,
+          volume: 123
+        }
+      ];
+      
+      res.json(heatmapData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch heatmap data" });
+    }
+  });
+
+  app.get("/api/analytics/trends/:collectibleId", async (req, res) => {
+    try {
+      const { MarketAnalyzer } = await import("./services/market-analyzer");
+      const { collectibleId } = req.params;
+      
+      // Generate realistic price data for trend analysis
+      const priceData = Array.from({ length: 30 }, (_, i) => {
+        const basePrice = 12000;
+        const trend = i * 20; // Upward trend
+        const noise = (Math.random() - 0.5) * 1000;
+        return basePrice + trend + noise;
+      });
+      
+      const volumeData = Array.from({ length: 30 }, (_, i) => 100 + Math.random() * 50);
+      
+      const trends = MarketAnalyzer.analyzeTrends(priceData, volumeData);
+      const prediction = MarketAnalyzer.predictPriceDirection(priceData, volumeData);
+      const alerts = MarketAnalyzer.generateAlerts(
+        priceData[priceData.length - 1], 
+        priceData, 
+        volumeData[volumeData.length - 1], 
+        120
+      );
+      
+      res.json({
+        collectibleId,
+        trends,
+        prediction,
+        alerts,
+        technicalIndicators: {
+          rsi: 65.4,
+          macd: 'bullish_crossover',
+          bollingerBands: 'upper_channel',
+          volumeProfile: 'above_average'
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch trend analysis" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

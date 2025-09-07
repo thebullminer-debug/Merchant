@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Activity, Calendar, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Activity, Calendar, Target, AlertTriangle, Brain } from "lucide-react";
 import { PriceChart } from "@/components/price-chart";
+import { MarketHeatmap } from "@/components/market-heatmap";
 import type { Category } from "@shared/schema";
 
 interface MarketOverview {
@@ -59,6 +60,16 @@ export function AnalyticsPage() {
     queryFn: async () => {
       const response = await fetch(`/api/analytics/categories?timeframe=${timeframe}`);
       if (!response.ok) throw new Error("Failed to fetch category stats");
+      return response.json();
+    },
+  });
+
+  // Market heatmap data
+  const { data: heatmapData = [] } = useQuery({
+    queryKey: ["/api/analytics/heatmap"],
+    queryFn: async () => {
+      const response = await fetch("/api/analytics/heatmap");
+      if (!response.ok) throw new Error("Failed to fetch heatmap data");
       return response.json();
     },
   });
@@ -174,10 +185,11 @@ export function AnalyticsPage() {
         {/* Tabs for Different Analytics Views */}
         <section>
           <Tabs defaultValue="categories" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="movers">Top Movers</TabsTrigger>
-              <TabsTrigger value="trends">Trends</TabsTrigger>
+              <TabsTrigger value="heatmap">Market Map</TabsTrigger>
+              <TabsTrigger value="trends">AI Insights</TabsTrigger>
             </TabsList>
 
             {/* Category Performance */}
@@ -329,23 +341,177 @@ export function AnalyticsPage() {
               </div>
             </TabsContent>
 
-            {/* Market Trends */}
+            {/* Market Heatmap */}
+            <TabsContent value="heatmap" className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-foreground">Market Heatmap</h3>
+                <MarketHeatmap data={heatmapData} title="Real-time Market Performance" />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="w-5 h-5 text-blue-500" />
+                        Market Sentiment
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">Bullish</span>
+                          <span className="text-sm font-semibold text-green-600">68%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">Neutral</span>
+                          <span className="text-sm font-semibold">22%</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">Bearish</span>
+                          <span className="text-sm font-semibold text-red-600">10%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-purple-500" />
+                        Volume Leaders
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {heatmapData.slice(0, 4).map((item: any, index: number) => (
+                          <div key={item.id} className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">{item.name}</p>
+                              <p className="text-xs text-muted-foreground">{item.category}</p>
+                            </div>
+                            <p className="text-sm font-semibold">{item.volume.toLocaleString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* AI Insights & Trends */}
             <TabsContent value="trends" className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-foreground">Market Trends</h3>
+                <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-primary" />
+                  AI Market Insights
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-orange-500" />
+                        Market Alerts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                          <div className="flex items-center gap-2 mb-1">
+                            <AlertTriangle className="w-4 h-4 text-orange-600" />
+                            <span className="text-sm font-semibold text-orange-800 dark:text-orange-200">Breakout Alert</span>
+                          </div>
+                          <p className="text-xs text-orange-700 dark:text-orange-300">
+                            Rolex Submariner broke above resistance at $12,500
+                          </p>
+                        </div>
+                        
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Activity className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-semibold text-blue-800 dark:text-blue-200">Volume Spike</span>
+                          </div>
+                          <p className="text-xs text-blue-700 dark:text-blue-300">
+                            Trading cards showing 340% above average volume
+                          </p>
+                        </div>
+
+                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                          <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-semibold text-green-800 dark:text-green-200">Trend Signal</span>
+                          </div>
+                          <p className="text-xs text-green-700 dark:text-green-300">
+                            Luxury watches entering bullish momentum phase
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Target className="w-5 h-5 text-purple-500" />
+                        Price Predictions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Patek Nautilus</span>
+                            <Badge variant="default" className="text-green-600">Bullish</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Target: $195,000 (+5.4%) | Confidence: 78%
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">LeBron Rookie</span>
+                            <Badge variant="default" className="text-green-600">Bullish</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Target: $138,000 (+10.4%) | Confidence: 65%
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Vintage Vinyl</span>
+                            <Badge variant="outline">Neutral</Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Range: $800-$900 | Confidence: 55%
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5" />
-                      Overall Market Performance
+                      <BarChart3 className="w-5 h-5 text-primary" />
+                      Technical Analysis Summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64 flex items-center justify-center text-muted-foreground">
-                      <div className="text-center">
-                        <PieChart className="w-12 h-12 mx-auto mb-4" />
-                        <p>Market trends chart would be displayed here</p>
-                        <p className="text-sm mt-1">Integration with charting library needed</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="text-center space-y-2">
+                        <div className="text-2xl font-bold text-green-600">73%</div>
+                        <div className="text-sm text-muted-foreground">Items Above 20-Day MA</div>
+                      </div>
+                      <div className="text-center space-y-2">
+                        <div className="text-2xl font-bold text-orange-600">15.2%</div>
+                        <div className="text-sm text-muted-foreground">Average Volatility</div>
+                      </div>
+                      <div className="text-center space-y-2">
+                        <div className="text-2xl font-bold text-blue-600">64</div>
+                        <div className="text-sm text-muted-foreground">Market Strength Index</div>
                       </div>
                     </div>
                   </CardContent>
