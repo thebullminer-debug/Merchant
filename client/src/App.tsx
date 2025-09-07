@@ -31,7 +31,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {/* Very Visible Gold Wave Background */}
+        {/* SOLID GOLD BACKGROUND TEST */}
         <div 
           style={{
             position: 'fixed',
@@ -39,14 +39,10 @@ function App() {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: `
-              linear-gradient(45deg, rgba(255, 215, 0, 0.8) 0%, transparent 25%, rgba(218, 165, 32, 0.8) 50%, transparent 75%, rgba(184, 134, 11, 0.8) 100%),
-              linear-gradient(135deg, rgba(184, 134, 11, 0.6) 0%, transparent 25%, rgba(255, 215, 0, 0.6) 50%, transparent 75%, rgba(218, 165, 32, 0.6) 100%)
-            `,
-            backgroundSize: '300px 300px, 400px 400px',
+            backgroundColor: '#FFD700',
             pointerEvents: 'none',
             zIndex: 0,
-            opacity: 0.3
+            opacity: 0.2
           }}
         />
         <div className="min-h-screen bg-background text-foreground dark">
