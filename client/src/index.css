@@ -10,13 +10,13 @@
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(214, 32%, 12%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(43, 96%, 56%);
+  --primary: hsl(37, 77%, 58%);
   --primary-foreground: hsl(0, 0%, 0%);
   --secondary: hsl(214, 32%, 15%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --muted: hsl(214, 32%, 15%);
   --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(43, 96%, 56%);
+  --accent: hsl(37, 77%, 58%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(210, 40%, 98%);
@@ -59,13 +59,13 @@
   --card-foreground: hsl(210, 40%, 98%);
   --popover: hsl(214, 32%, 12%);
   --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(43, 96%, 56%);
+  --primary: hsl(37, 77%, 58%);
   --primary-foreground: hsl(0, 0%, 0%);
   --secondary: hsl(214, 32%, 15%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --muted: hsl(214, 32%, 15%);
   --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(43, 96%, 56%);
+  --accent: hsl(37, 77%, 58%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62%, 30%);
   --destructive-foreground: hsl(210, 40%, 98%);
@@ -152,20 +152,24 @@
     100% { background-position: 200% 0; }
   }
 
-  /* Luxury Gold Effects */
+  /* Flowing Gold Effects */
   .bg-primary {
-    background: #F4C430;
+    background: linear-gradient(135deg, #D4A574 0%, #E4B429 40%, #C9A961 100%);
     color: #000000;
-    border: 1px solid #CC9900;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    border: 1px solid #B8860B;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
   .bg-primary:hover {
-    background: #FFD033;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #E4B574 0%, #F4C439 40%, #D9B971 100%);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
   }
 
   .text-primary {
-    color: #F4C430;
+    background: linear-gradient(135deg, #D4A574 0%, #E4B429 40%, #C9A961 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
