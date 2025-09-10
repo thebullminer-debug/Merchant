@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertCollectibleSchema, insertCategorySchema } from "@shared/schema";
 import { marketplaceScraperService } from "./services/marketplace-scraper";
 import { addVinylRecords } from "./simple-vinyl-seed";
+import { dailyPriceService } from "./services/daily-price-service";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -305,6 +306,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Vinyl import error:", error);
       res.status(500).json({ message: "Failed to import vinyl records" });
+    }
+  });
+
+  // Daily price updates
+  app.post("/api/prices/update", async (_req, res) => {
+    try {
+      const results = await dailyPriceService.triggerManualUpdate();
+      res.json({ 
+        message: "Price update completed",
+        updated: results.updated,
+        errors: results.errors.length,
+        details: results.errors.length > 0 ? results.errors.slice(0, 5) : undefined
+      });
+    } catch (error) {
+      console.error("Price update error:", error);
+      res.status(500).json({ message: "Failed to update prices" });
+    }
+  });
+
+  // Price update status
+  app.get("/api/prices/status", async (_req, res) => {
+    try {
+      const status = dailyPriceService.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Status error:", error);
+      res.status(500).json({ message: "Failed to get status" });
     }
   });
 
