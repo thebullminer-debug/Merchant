@@ -17,7 +17,7 @@ export function MarketStats() {
   if (isLoading) {
     return (
       <section className="mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {Array.from({ length: 3 }).map((_, index) => (
             <Card key={index} className="bg-card border border-border">
               <CardContent className="p-6 text-center">
@@ -56,7 +56,7 @@ export function MarketStats() {
 
   return (
     <section className="mb-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-card border border-border">
           <CardContent className="p-6 text-center">
             <div className="text-3xl font-bold text-foreground mb-2" data-testid="stat-total-items">
@@ -83,15 +83,6 @@ export function MarketStats() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border border-border">
-          <CardContent className="p-6 text-center">
-            <div className="text-3xl font-bold text-foreground mb-2" data-testid="stat-active-listings">
-              {stats.activeListings.toLocaleString()}
-            </div>
-            <div className="text-muted-foreground">Active Listings</div>
-            <div className="text-sm text-muted-foreground mt-1">Updated hourly</div>
-          </CardContent>
-        </Card>
       </div>
     </section>
   );
