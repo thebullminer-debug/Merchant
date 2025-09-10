@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart, Activity, Calendar, Target, AlertTriangle, Brain } from "lucide-react";
 import { PriceChart } from "@/components/price-chart";
 import { MarketHeatmap } from "@/components/market-heatmap";
+import { PriceAlerts } from "@/components/price-alerts";
 import type { Category } from "@shared/schema";
 
 interface MarketOverview {
@@ -185,9 +186,10 @@ export function AnalyticsPage() {
         {/* Tabs for Different Analytics Views */}
         <section>
           <Tabs defaultValue="categories" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="movers">Top Movers</TabsTrigger>
+              <TabsTrigger value="movements">Recent Price Movements</TabsTrigger>
               <TabsTrigger value="heatmap">Market Map</TabsTrigger>
               <TabsTrigger value="trends">AI Insights</TabsTrigger>
             </TabsList>
@@ -338,6 +340,15 @@ export function AnalyticsPage() {
                     )}
                   </CardContent>
                 </Card>
+              </div>
+            </TabsContent>
+
+            {/* Recent Price Movements */}
+            <TabsContent value="movements" className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-foreground">Recent Price Movements</h3>
+                <p className="text-muted-foreground">Latest price changes and market alerts</p>
+                <PriceAlerts />
               </div>
             </TabsContent>
 
