@@ -29,8 +29,8 @@ export const collectibles = pgTable("collectibles", {
   year: integer("year"),
   condition: text("condition"),
   imageUrl: text("image_url"),
-  tags: jsonb("tags").$type<string[]>().default([]),
-  metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+  tags: jsonb("tags").notNull().default(sql`'[]'::jsonb`),
+  metadata: jsonb("metadata").notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
@@ -61,7 +61,7 @@ export const medianPrices = pgTable("median_prices", {
   date: timestamp("date").notNull(),
   medianPrice: decimal("median_price", { precision: 10, scale: 2 }).notNull(),
   activeListings: integer("active_listings").default(0),
-  priceRange: jsonb("price_range").$type<{min: number, max: number}>(),
+  priceRange: jsonb("price_range"),
   dayChange: decimal("day_change", { precision: 5, scale: 2 }), // percentage change
   calculatedAt: timestamp("calculated_at").defaultNow(),
 }, (table) => ({

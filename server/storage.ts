@@ -104,7 +104,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCollectible(collectible: InsertCollectible): Promise<Collectible> {
-    const [newCollectible] = await db.insert(collectibles).values(collectible).returning();
+    const [newCollectible] = await db.insert(collectibles).values([collectible]).returning();
     return newCollectible;
   }
 
