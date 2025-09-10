@@ -4,56 +4,48 @@ import type { InsertCategory, InsertCollectible, InsertPriceHistory, InsertMedia
 // Comprehensive category data with realistic market coverage
 const categoriesData: InsertCategory[] = [
   {
-    id: "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
     name: "Watches",
     slug: "watches",
     icon: "⌚",
     description: "Luxury watches, vintage timepieces, and collectible chronometers"
   },
   {
-    id: "6ba7b813-9dad-11d1-80b4-00c04fd430c8", 
     name: "Trading Cards",
     slug: "trading-cards",
     icon: "🎴",
     description: "Sports cards, Pokémon, Magic: The Gathering, and rare gaming cards"
   },
   {
-    id: "6ba7b814-9dad-11d1-80b4-00c04fd430c8",
     name: "Vinyl Records",
     slug: "vinyl-records",
     icon: "💿",
     description: "Vintage vinyl records, rare pressings, and collectible albums"
   },
   {
-    id: "6ba7b815-9dad-11d1-80b4-00c04fd430c8",
     name: "Coins",
     slug: "coins",
     icon: "🪙",
     description: "Rare coins, currency, and numismatic collectibles"
   },
   {
-    id: "6ba7b816-9dad-11d1-80b4-00c04fd430c8",
     name: "Sports Collectibles",
     slug: "sports-collectibles", 
     icon: "🏆",
     description: "Sports memorabilia, autographed items, and game-used equipment"
   },
   {
-    id: "6ba7b817-9dad-11d1-80b4-00c04fd430c8",
     name: "Collector Cars",
     slug: "collector-cars",
     icon: "🚗",
     description: "Classic cars, vintage automobiles, and rare automotive collectibles"
   },
   {
-    id: "6ba7b818-9dad-11d1-80b4-00c04fd430c8",
     name: "Military",
     slug: "military",
     icon: "🎖️",
     description: "Military memorabilia, medals, weapons, and historical artifacts"
   },
   {
-    id: "6ba7b819-9dad-11d1-80b4-00c04fd430c8",
     name: "Art",
     slug: "art",
     icon: "🎨",
