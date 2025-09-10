@@ -112,7 +112,6 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
       x: {
         grid: {
           color: "hsl(214, 32%, 20%)",
-          drawBorder: false,
         },
         ticks: {
           color: "hsl(215, 20%, 65%)",
@@ -124,7 +123,6 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
       y: {
         grid: {
           color: "hsl(214, 32%, 20%)",
-          drawBorder: false,
         },
         ticks: {
           color: "hsl(215, 20%, 65%)",

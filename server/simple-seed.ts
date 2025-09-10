@@ -40,7 +40,7 @@ export async function quickSeed() {
           condition: "Excellent",
           imageUrl: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
           tags: ["luxury", "diving", "automatic"],
-          metadata: { caseDiameter: "41mm", movement: "3235" }
+          metadata: { "caseDiameter": ["41mm"], "movement": ["3235"] }
         },
         {
           name: "2003 LeBron James Rookie Card",
@@ -52,7 +52,7 @@ export async function quickSeed() {
           condition: "BGS 9.5",
           imageUrl: "https://images.unsplash.com/photo-1571171637578-41bc2dd41cd2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
           tags: ["rookie", "basketball", "graded"],
-          metadata: { player: "LeBron James", grade: "9.5" }
+          metadata: { "player": ["LeBron James"], "grade": ["9.5"] }
         }
       ];
 
@@ -67,21 +67,18 @@ export async function quickSeed() {
           
           await storage.addPriceData({
             collectibleId: created.id,
-            price: price,
-            marketplace: "eBay",
-            date: today,
+            price: price.toString(),
+            source: "eBay",
             condition: item.condition || "Excellent",
-            listingType: "buy-it-now"
+            listingUrl: `https://ebay.com/item/${Math.random().toString(36).substr(2, 9)}`
           });
 
           await storage.addMedianPrice({
             collectibleId: created.id,
-            medianPrice: price,
-            dayChange: Math.random() * 10 - 5,
-            weekChange: Math.random() * 20 - 10,
-            monthChange: Math.random() * 30 - 15,
-            activeListings: Math.floor(Math.random() * 20) + 5,
-            date: today
+            date: today,
+            medianPrice: price.toString(),
+            dayChange: (Math.random() * 10 - 5).toString(),
+            activeListings: Math.floor(Math.random() * 20) + 5
           });
 
         } catch (error) {

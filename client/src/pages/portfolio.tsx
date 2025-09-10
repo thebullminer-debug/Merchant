@@ -371,7 +371,7 @@ export default function Portfolio() {
                 <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
                   <Link href={`/collectible/${item.collectible.id}`}>
                     <img
-                      src={item.collectible.imageUrl}
+                      src={item.collectible.imageUrl || ''}
                       alt={item.collectible.name}
                       className="w-20 h-20 object-cover rounded-lg bg-muted cursor-pointer hover:opacity-80 transition-opacity"
                       data-testid={`img-portfolio-${item.id}`}

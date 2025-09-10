@@ -452,6 +452,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced marketplace sources endpoints
+  app.get("/api/sources", async (_req, res) => {
+    try {
+      const { sourceManager } = await import("./services/marketplace-sources");
+      const sources = sourceManager.getAllActiveSources();
+      res.json(sources);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sources" });
+    }
+  });
+
+  app.get("/api/sources/health", async (_req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      const healthReport = await enhancedMarketplaceScraper.getSourceHealthReport();
+      res.json(healthReport);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch source health" });
+    }
+  });
+
+  app.get("/api/sources/category/:categorySlug", async (req, res) => {
+    try {
+      const { sourceManager } = await import("./services/marketplace-sources");
+      const sources = sourceManager.getSourcesByCategory(req.params.categorySlug);
+      res.json(sources);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sources for category" });
+    }
+  });
+
+  app.post("/api/collectibles/:id/scrape", async (req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      const { priority = 'medium' } = req.body;
+      const jobId = await enhancedMarketplaceScraper.scheduleCollectibleScraping(req.params.id, priority);
+      res.json({ jobId, message: "Scraping job scheduled" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to schedule scraping" });
+    }
+  });
+
+  app.post("/api/collectibles/:id/emergency-scrape", async (req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      const jobId = await enhancedMarketplaceScraper.triggerEmergencyScraping(req.params.id);
+      res.json({ jobId, message: "Emergency scraping triggered" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to trigger emergency scraping" });
+    }
+  });
+
+  app.get("/api/scraping/queue", async (_req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      const queueStatus = enhancedMarketplaceScraper.getQueueStatus();
+      res.json(queueStatus);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch queue status" });
+    }
+  });
+
+  app.get("/api/aggregation/:collectibleId", async (req, res) => {
+    try {
+      const { dataAggregator } = await import("./services/data-aggregator");
+      const aggregatedData = await dataAggregator.aggregatePriceData(req.params.collectibleId);
+      if (!aggregatedData) {
+        return res.status(404).json({ message: "No aggregated data available" });
+      }
+      res.json(aggregatedData);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch aggregated data" });
+    }
+  });
+
+  app.post("/api/sources/:sourceId/pause", async (req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      enhancedMarketplaceScraper.pauseSource(req.params.sourceId);
+      res.json({ message: `Source ${req.params.sourceId} paused` });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to pause source" });
+    }
+  });
+
+  app.post("/api/sources/:sourceId/resume", async (req, res) => {
+    try {
+      const { enhancedMarketplaceScraper } = await import("./services/enhanced-marketplace-scraper");
+      enhancedMarketplaceScraper.resumeSource(req.params.sourceId);
+      res.json({ message: `Source ${req.params.sourceId} resumed` });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to resume source" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

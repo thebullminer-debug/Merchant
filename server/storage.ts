@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateCollectible(id: string, updateData: Partial<InsertCollectible>): Promise<Collectible> {
     const [updated] = await db.update(collectibles)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: sql`NOW()` })
       .where(eq(collectibles.id, id))
       .returning();
     return updated;

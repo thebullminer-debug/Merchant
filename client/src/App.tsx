@@ -11,6 +11,7 @@ import { MarketsPage } from "@/pages/markets";
 import { AnalyticsPage } from "@/pages/analytics";
 import { WatchlistPage } from "@/pages/watchlist";
 import Portfolio from "@/pages/portfolio";
+import SourcesPage from "@/pages/sources";
 import ItemDetail from "@/pages/item-detail";
 import NotFound from "@/pages/not-found";
 
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/analytics" component={AnalyticsPage} />
       <Route path="/watchlist" component={WatchlistPage} />
       <Route path="/portfolio" component={Portfolio} />
+      <Route path="/sources" component={SourcesPage} />
       <Route path="/item/:id" component={ItemDetail} />
       <Route component={NotFound} />
     </Switch>
