@@ -64,11 +64,28 @@ export function SearchPage() {
     enabled: !!searchQuery,
   });
 
+  // Query for category-based collectibles when no search query but category is selected
+  const { data: categoryResults = [], isLoading: categoryLoading } = useQuery<SearchResult[]>({
+    queryKey: ["/api/collectibles", selectedCategory],
+    queryFn: async () => {
+      if (!selectedCategory) return [];
+      
+      const response = await fetch(`/api/collectibles?category=${selectedCategory}`);
+      if (!response.ok) throw new Error("Failed to fetch category items");
+      return response.json();
+    },
+    enabled: !!selectedCategory && !searchQuery,
+  });
+
   const handleItemClick = (item: SearchResult) => {
     setLocation(`/item/${item.id}`);
   };
 
-  const filteredResults = searchResults.filter(item => {
+  // Determine which results to show and filter them
+  const currentResults = searchQuery ? searchResults : categoryResults;
+  const currentLoading = searchQuery ? isLoading : categoryLoading;
+  
+  const filteredResults = currentResults.filter(item => {
     if (priceRange === "all") return true;
     const price = item.currentPrice || 0;
     
@@ -80,6 +97,9 @@ export function SearchPage() {
       default: return true;
     }
   });
+
+  const showCategoryResults = selectedCategory && !searchQuery;
+  const showCategoryGrid = !searchQuery && !selectedCategory;
 
   return (
     <main className="min-h-screen bg-background">
@@ -177,25 +197,98 @@ export function SearchPage() {
           </div>
         </section>
 
-        {/* Search Results */}
-        {searchQuery && (
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
+        {/* Search Results or Category Results */}
+        {(searchQuery || showCategoryResults) && (
+          <div className="flex gap-8">
+            {/* Left Sidebar - Filters */}
+            <div className="w-64 space-y-6">
               <div>
-                <h2 className="text-2xl font-bold text-foreground">Search Results</h2>
-                <p className="text-muted-foreground">
-                  {isLoading ? "Searching..." : `${filteredResults.length} results for "${searchQuery}"`}
-                </p>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Filters</h3>
+                
+                {/* Category Filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium">Category</label>
+                    {selectedCategory && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSelectedCategory(null)}
+                        className="h-6 px-2"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Price Range Filter */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Price Range</label>
+                  <Select value={priceRange} onValueChange={setPriceRange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Prices</SelectItem>
+                      <SelectItem value="under-100">Under $100</SelectItem>
+                      <SelectItem value="100-1000">$100 - $1,000</SelectItem>
+                      <SelectItem value="1000-10000">$1,000 - $10,000</SelectItem>
+                      <SelectItem value="over-10000">Over $10,000</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort By Filter */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Sort By</label>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="relevance">Relevance</SelectItem>
+                      <SelectItem value="price-high">Price: High to Low</SelectItem>
+                      <SelectItem value="price-low">Price: Low to High</SelectItem>
+                      <SelectItem value="trending">Most Popular</SelectItem>
+                      <SelectItem value="newest">Newest First</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              {selectedCategory && (
-                <Badge variant="secondary" className="gap-2">
-                  {categories.find(c => c.id === selectedCategory)?.name}
-                  <button onClick={() => setSelectedCategory(null)} className="ml-1 hover:text-foreground">×</button>
-                </Badge>
-              )}
             </div>
 
-            {isLoading ? (
+            {/* Main Results Area */}
+            <div className="flex-1 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {searchQuery ? "Search Results" : selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name || 'Category'} Items` : "All Items"}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {currentLoading ? "Loading..." : 
+                      searchQuery ? `${filteredResults.length} results for "${searchQuery}"` :
+                      selectedCategory ? `${filteredResults.length} items in ${categories.find(c => c.id === selectedCategory)?.name}` :
+                      `${filteredResults.length} items`
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {currentLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 8 }).map((_, index) => (
                   <Card key={index} className="bg-card border border-border">
@@ -268,12 +361,13 @@ export function SearchPage() {
                   </Card>
                 ))}
               </div>
-            )}
-          </section>
+              )}
+            </div>
+          </div>
         )}
 
-        {/* Show categories if no search query */}
-        {!searchQuery && (
+        {/* Show categories if no search query and no category selected */}
+        {showCategoryGrid && (
           <>
             {/* Categories Grid */}
             <section className="space-y-6">
@@ -293,10 +387,7 @@ export function SearchPage() {
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 overflow-hidden"
                       onClick={() => {
                         setSelectedCategory(category.id);
-                        const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
-                        if (searchInput) {
-                          searchInput.focus();
-                        }
+                        setShowFilters(true);
                       }}
                       data-testid={`category-${category.id}`}
                     >
