@@ -124,8 +124,19 @@ export class DatabaseStorage implements IStorage {
       activeListings: medianPrices.activeListings
     })
     .from(collectibles)
-    .leftJoin(medianPrices, eq(collectibles.id, medianPrices.collectibleId))
-    .where(sql`${medianPrices.date} >= NOW() - INTERVAL '7 days'`)
+    .leftJoin(
+      medianPrices, 
+      and(
+        eq(collectibles.id, medianPrices.collectibleId),
+        sql`${medianPrices.date} = (
+          SELECT MAX(date) 
+          FROM median_prices mp2 
+          WHERE mp2.collectible_id = ${collectibles.id} 
+          AND mp2.date >= NOW() - INTERVAL '7 days'
+        )`
+      )
+    )
+    .where(sql`${medianPrices.collectibleId} IS NOT NULL`)
     .orderBy(desc(medianPrices.dayChange))
     .limit(limit);
 
