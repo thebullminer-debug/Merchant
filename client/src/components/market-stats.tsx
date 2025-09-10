@@ -18,7 +18,7 @@ export function MarketStats() {
     return (
       <section className="mb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Array.from({ length: 3 }).map((_, index) => (
+          {Array.from({ length: 2 }).map((_, index) => (
             <Card key={index} className="bg-card border border-border">
               <CardContent className="p-6 text-center">
                 <div className="loading-shimmer h-8 w-24 mx-auto mb-2 rounded"></div>

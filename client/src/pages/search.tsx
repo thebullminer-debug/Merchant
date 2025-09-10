@@ -261,18 +261,9 @@ export function SearchPage() {
           </section>
         )}
 
-        {/* Show featured item and trending if no search query */}
+        {/* Show market stats if no search query */}
         {!searchQuery && (
           <>
-            {/* Featured Collectible - Rolex Watch with Chart */}
-            <FeaturedItem collectibleId="30ede095-8a47-43d4-9178-88509239a07a" />
-
-            {/* Trending Items Grid */}
-            <TrendingItems />
-
-            {/* Price Alerts */}
-            <PriceAlerts />
-
             {/* Market Overview Stats */}
             <MarketStats />
           </>
