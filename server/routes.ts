@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertCollectibleSchema, insertCategorySchema } from "@shared/schema";
 import { marketplaceScraperService } from "./services/marketplace-scraper";
+import { addVinylRecords } from "./simple-vinyl-seed";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -289,6 +290,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Comprehensive seeding error:", error);
       res.status(500).json({ message: "Failed to seed comprehensive database" });
+    }
+  });
+
+  // Vinyl records import from multiple sources
+  app.post("/api/vinyl/import", async (_req, res) => {
+    try {
+      const success = await addVinylRecords();
+      if (success) {
+        res.json({ message: "Vinyl records imported successfully from multiple sources" });
+      } else {
+        res.status(500).json({ message: "Vinyl import partially failed" });
+      }
+    } catch (error) {
+      console.error("Vinyl import error:", error);
+      res.status(500).json({ message: "Failed to import vinyl records" });
     }
   });
 

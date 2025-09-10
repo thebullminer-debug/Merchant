@@ -122,7 +122,7 @@ export class VinylRecordsService {
     try {
       // Get vinyl records category
       const categories = await storage.getCategories();
-      const vinylCategory = categories.find(cat => cat.slug === "vinyl-records");
+      const vinylCategory = categories.find(cat => cat.slug === "vinyl" || cat.slug === "vinyl-records");
       
       if (!vinylCategory) {
         results.errors.push("Vinyl Records category not found");
