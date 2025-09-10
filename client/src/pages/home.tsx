@@ -48,7 +48,7 @@ export default function Home() {
               data-testid="button-start-exploring"
             >
               <Link href="/search">
-                Start Exploring <ArrowRight className="ml-2 w-5 h-5" />
+                Shop Now <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
           </div>
@@ -139,16 +139,6 @@ export default function Home() {
         {/* Market Statistics */}
         <MarketStats />
 
-        {/* Price Alerts Preview */}
-        <section className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-foreground">Recent Activity</h2>
-            <p className="text-lg text-muted-foreground">
-              Latest price movements and alerts
-            </p>
-          </div>
-          <PriceAlerts />
-        </section>
 
         {/* Call to Action */}
         <section className="text-center space-y-6 py-12">
