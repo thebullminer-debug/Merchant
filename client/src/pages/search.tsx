@@ -10,19 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown, Timer, CreditCard, Disc, CircleDollarSign, Trophy, Car, Shield, Palette } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Category, Collectible } from "@shared/schema";
 
-const categoryIcons = {
-  "Watches": Timer,
-  "Trading Cards": CreditCard,
-  "Vinyl Records": Disc,
-  "Coins": CircleDollarSign,
-  "Sports Collectibles": Trophy,
-  "Collector Cars": Car,
-  "Military": Shield,
-  "Art": Palette,
+const categoryImages = {
+  "Watches": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Trading Cards": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Vinyl Records": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Coins": "https://images.unsplash.com/photo-1518546305927-5a555bb7020d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Sports Collectibles": "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Collector Cars": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Military": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
+  "Art": "https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80",
 };
 
 interface SearchResult extends Collectible {
@@ -286,11 +286,11 @@ export function SearchPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {categories.map((category) => {
-                  const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons] || Timer;
+                  const categoryImage = categoryImages[category.name as keyof typeof categoryImages];
                   return (
                     <Card 
                       key={category.id} 
-                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
+                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 overflow-hidden"
                       onClick={() => {
                         setSelectedCategory(category.id);
                         const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
@@ -300,15 +300,23 @@ export function SearchPage() {
                       }}
                       data-testid={`category-${category.id}`}
                     >
-                      <CardContent className="p-6 text-center">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="p-3 bg-primary/10 rounded-lg">
-                            <IconComponent className="w-8 h-8 text-primary" />
+                      <div className="aspect-square overflow-hidden">
+                        {categoryImage ? (
+                          <img 
+                            src={categoryImage}
+                            alt={category.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-muted-foreground text-sm">No image</span>
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-foreground">{category.name}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
-                          </div>
+                        )}
+                      </div>
+                      <CardContent className="p-4 text-center">
+                        <div>
+                          <h3 className="font-semibold text-foreground">{category.name}</h3>
+                          <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
                         </div>
                       </CardContent>
                     </Card>
