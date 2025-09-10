@@ -361,7 +361,7 @@ export function SearchPage() {
                   </Card>
                 ))}
               </div>
-              )}
+            )}
             </div>
           </div>
         )}
