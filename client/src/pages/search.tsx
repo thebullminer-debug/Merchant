@@ -10,19 +10,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown, Watch, Gamepad2, Music, Coins, Medal, CarFront, Sword, Paintbrush } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown, Timer, CreditCard, Disc, CircleDollarSign, Trophy, Car, Shield, Palette } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Category, Collectible } from "@shared/schema";
 
 const categoryIcons = {
-  "Watches": Watch,
-  "Trading Cards": Gamepad2,
-  "Vinyl Records": Music,
-  "Coins": Coins,
-  "Sports Collectibles": Medal,
-  "Collector Cars": CarFront,
-  "Military": Sword,
-  "Art": Paintbrush,
+  "Watches": Timer,
+  "Trading Cards": CreditCard,
+  "Vinyl Records": Disc,
+  "Coins": CircleDollarSign,
+  "Sports Collectibles": Trophy,
+  "Collector Cars": Car,
+  "Military": Shield,
+  "Art": Palette,
 };
 
 interface SearchResult extends Collectible {
@@ -286,7 +286,7 @@ export function SearchPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {categories.map((category) => {
-                  const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons] || Watch;
+                  const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons] || Timer;
                   return (
                     <Card 
                       key={category.id} 
