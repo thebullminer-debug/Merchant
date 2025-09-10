@@ -10,9 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown } from "lucide-react";
+import { Search, Filter, SlidersHorizontal, TrendingUp, TrendingDown, Clock, CreditCard, Disc3, Coins, Trophy, Car, Shield, Palette } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Category, Collectible } from "@shared/schema";
+
+const categoryIcons = {
+  "Watches": Clock,
+  "Trading Cards": CreditCard,
+  "Vinyl Records": Disc3,
+  "Coins": Coins,
+  "Sports Collectibles": Trophy,
+  "Collector Cars": Car,
+  "Military": Shield,
+  "Art": Palette,
+};
 
 interface SearchResult extends Collectible {
   currentPrice?: number;
@@ -261,11 +272,50 @@ export function SearchPage() {
           </section>
         )}
 
-        {/* Show market stats if no search query */}
+        {/* Show categories if no search query */}
         {!searchQuery && (
           <>
-            {/* Market Overview Stats */}
-            <MarketStats />
+            {/* Categories Grid */}
+            <section className="space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-foreground">Browse Categories</h2>
+                <p className="text-lg text-muted-foreground">
+                  Explore collectibles by category
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {categories.map((category) => {
+                  const IconComponent = categoryIcons[category.name as keyof typeof categoryIcons] || Clock;
+                  return (
+                    <Card 
+                      key={category.id} 
+                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
+                        if (searchInput) {
+                          searchInput.focus();
+                        }
+                      }}
+                      data-testid={`category-${category.id}`}
+                    >
+                      <CardContent className="p-6 text-center">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="p-3 bg-primary/10 rounded-lg">
+                            <IconComponent className="w-8 h-8 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-foreground">{category.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </section>
           </>
         )}
       </div>
