@@ -28,9 +28,6 @@ export function Header() {
 
           {/* Navigation Links - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/search" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-search">
-              Search
-            </Link>
             <Link href="/markets" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-markets">
               Markets
             </Link>
@@ -65,9 +62,6 @@ export function Header() {
               <SearchBar />
             </div>
             <nav className="flex flex-col space-y-2">
-              <Link href="/search" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-search-mobile">
-                Search
-              </Link>
               <Link href="/markets" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-markets-mobile">
                 Markets
               </Link>
