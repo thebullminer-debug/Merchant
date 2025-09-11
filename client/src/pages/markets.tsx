@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBar } from "@/components/search-bar";
-import { Watch, Zap, Disc, Coins, Trophy, Car, Shield, Palette, TrendingUp, TrendingDown, BarChart3, Star, Search, Filter, SlidersHorizontal } from "lucide-react";
+import { MarketStats } from "@/components/market-stats";
+import { TrendingItems } from "@/components/trending-items";
+import { PriceChart } from "@/components/price-chart";
+import { Watch, Zap, Disc, Coins, Trophy, Car, Shield, Palette, TrendingUp, TrendingDown, BarChart3, Star, Search, Filter, SlidersHorizontal, Activity, Eye, Bell } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Category, Collectible } from "@shared/schema";
 
@@ -233,7 +236,7 @@ export function MarketsPage() {
         </section>
 
         {/* Search Results */}
-        {(searchQuery || showCategoryResults) && (
+        {searchQuery && (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -419,16 +422,16 @@ export function MarketsPage() {
         </section>
         )}
 
-        {/* Market Data Table */}
-        {selectedCategory && (
-          <section className="space-y-6">
+        {/* Category Analytics Panel - Shows when a category is selected but not searching */}
+        {selectedCategory && !searchQuery && (
+          <section className="space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">
-                  {categories.find(c => c.id === selectedCategory)?.name} Market
+                  {categories.find(c => c.id === selectedCategory)?.name} Analytics
                 </h2>
                 <p className="text-muted-foreground">
-                  Live pricing and market data for {categories.find(c => c.id === selectedCategory)?.name?.toLowerCase()}
+                  Market insights and performance data for {categories.find(c => c.id === selectedCategory)?.name?.toLowerCase()}
                 </p>
               </div>
               <Button 
@@ -440,93 +443,235 @@ export function MarketsPage() {
               </Button>
             </div>
 
-            {isLoading ? (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <div key={index} className="flex items-center justify-between py-3 border-b border-border last:border-b-0">
-                        <div className="flex items-center space-x-4">
-                          <div className="loading-shimmer w-12 h-12 rounded-lg"></div>
-                          <div>
-                            <div className="loading-shimmer h-4 w-32 rounded mb-1"></div>
-                            <div className="loading-shimmer h-3 w-20 rounded"></div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="loading-shimmer h-4 w-20 rounded mb-1"></div>
-                          <div className="loading-shimmer h-3 w-12 rounded"></div>
-                        </div>
-                      </div>
-                    ))}
+            {/* Category KPI Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6 text-center">
+                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-items">
+                    {categoryResults.length}
+                  </div>
+                  <div className="text-muted-foreground text-sm">Items Available</div>
+                  <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-center">
+                    <Activity size={12} className="mr-1" />
+                    Active market
                   </div>
                 </CardContent>
               </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-0">
-                  {marketData.filter(item => item.categoryId === selectedCategory).length === 0 ? (
-                    <div className="text-center py-12">
-                      <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium text-foreground mb-2">No items in this category</h3>
-                      <p className="text-muted-foreground">Check back later for new additions</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-border">
-                      {marketData
-                        .filter(item => item.categoryId === selectedCategory)
-                        .map((item, index) => (
-                          <div
-                            key={`${item.id}-${index}`}
-                            className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-                            onClick={() => handleItemClick(item)}
-                            data-testid={`market-item-${item.id}`}
-                          >
-                            <div className="flex items-center space-x-4">
-                              {item.imageUrl ? (
-                                <img
-                                  src={item.imageUrl}
-                                  alt={item.name}
-                                  className="w-12 h-12 object-cover rounded-lg"
-                                  onError={(e) => {
-                                    const img = e.target as HTMLImageElement;
-                                    img.style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                                  <span className="text-xs text-muted-foreground">No img</span>
-                                </div>
-                              )}
-                              <div>
-                                <h3 className="font-medium text-foreground">{item.name}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.brand} {item.model && `• ${item.model}`}
-                                </p>
-                              </div>
+
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6 text-center">
+                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-price">
+                    {categoryResults.length > 0 
+                      ? `$${Math.round(categoryResults.reduce((sum, item) => sum + (item.currentPrice || 0), 0) / categoryResults.length).toLocaleString()}`
+                      : 'N/A'}
+                  </div>
+                  <div className="text-muted-foreground text-sm">Avg. Price</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Median value
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6 text-center">
+                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-change">
+                    {categoryResults.length > 0 
+                      ? `${(categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length).toFixed(1)}%`
+                      : 'N/A'}
+                  </div>
+                  <div className="text-muted-foreground text-sm">Avg. Change</div>
+                  <div className={`text-xs mt-1 flex items-center justify-center ${
+                    categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0
+                      ? 'text-green-600 dark:text-green-400' 
+                      : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    {categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0 
+                      ? <TrendingUp size={12} className="mr-1" />
+                      : <TrendingDown size={12} className="mr-1" />
+                    }
+                    24h trend
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6 text-center">
+                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-active-listings">
+                    {categoryResults.reduce((sum, item) => sum + (item.activeListings || 0), 0)}
+                  </div>
+                  <div className="text-muted-foreground text-sm">Active Listings</div>
+                  <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center justify-center">
+                    <Eye size={12} className="mr-1" />
+                    Live market
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Category Price Chart - Show chart for highest value item in category */}
+            {categoryResults.length > 0 && (
+              <Card className="bg-card border border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-primary" />
+                    Category Price Trends
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Price history for {categoryResults
+                      .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.name || 'representative item'}
+                  </p>
+                </CardHeader>
+                <CardContent data-testid="chart-price">
+                  <PriceChart
+                    collectibleId={categoryResults
+                      .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.id || ''}
+                    collectibleName={categoryResults
+                      .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.name || ''}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Top Movers */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Top Gainers */}
+              <Card className="bg-card border border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
+                    Top Gainers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {categoryResults
+                    .filter(item => (item.priceChange || 0) > 0)
+                    .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <div
+                        key={`gainer-${item.id}-${index}`}
+                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleItemClick(item)}
+                        data-testid={`top-gainer-${item.id}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">N/A</span>
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-foreground">
-                                {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
-                              </p>
-                              {item.priceChange !== undefined && (
-                                <p className={`text-sm flex items-center justify-end gap-1 ${
-                                  item.priceChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                                }`}>
-                                  {item.priceChange >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                  {item.priceChange >= 0 ? '+' : ''}{item.priceChange.toFixed(1)}%
-                                </p>
-                              )}
-                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                            <p className="text-xs text-muted-foreground">{item.brand}</p>
                           </div>
-                        ))}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">
+                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
+                          </p>
+                          <span className="text-green-600 dark:text-green-400 text-xs flex items-center">
+                            <TrendingUp size={10} className="mr-1" />
+                            +{(item.priceChange || 0).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  {categoryResults.filter(item => (item.priceChange || 0) > 0).length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      No gaining items in this category
                     </div>
                   )}
                 </CardContent>
               </Card>
-            )}
+
+              {/* Top Losers */}
+              <Card className="bg-card border border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingDown className="w-5 h-5 text-red-600" />
+                    Top Losers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {categoryResults
+                    .filter(item => (item.priceChange || 0) < 0)
+                    .sort((a, b) => (a.priceChange || 0) - (b.priceChange || 0))
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <div
+                        key={`loser-${item.id}-${index}`}
+                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleItemClick(item)}
+                        data-testid={`top-loser-${item.id}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">N/A</span>
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                            <p className="text-xs text-muted-foreground">{item.brand}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">
+                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
+                          </p>
+                          <span className="text-red-600 dark:text-red-400 text-xs flex items-center">
+                            <TrendingDown size={10} className="mr-1" />
+                            {(item.priceChange || 0).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  {categoryResults.filter(item => (item.priceChange || 0) < 0).length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      No declining items in this category
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <Card className="bg-card border border-border">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-4">
+                  <Button variant="outline" className="flex items-center gap-2" data-testid="button-watch-category">
+                    <Eye size={16} />
+                    Watch Category
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" data-testid="button-price-alert">
+                    <Bell size={16} />
+                    Create Price Alert
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2" data-testid="button-market-report">
+                    <Activity size={16} />
+                    View Market Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </section>
         )}
+
       </div>
     </main>
   );
