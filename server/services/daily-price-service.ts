@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { withRetry } from "../db";
 import { dataAggregator } from "./data-aggregator";
 import { priceCalculator } from "./priceCalculator";
 import { enhancedMarketplaceScraper } from "./enhanced-marketplace-scraper";
@@ -26,15 +27,18 @@ export class DailyPriceService {
     try {
       console.log("🔄 Starting daily price update process...");
       
-      // Get all collectibles
-      const collectibles = await storage.getCollectibles();
+      // Get all collectibles with retry
+      const collectibles = await withRetry(() => storage.getCollectibles());
       console.log(`📊 Found ${collectibles.length} collectibles to update`);
 
-      // Process collectibles in batches to avoid overwhelming APIs
-      const batchSize = 5;
-      for (let i = 0; i < collectibles.length; i += batchSize) {
-        const batch = collectibles.slice(i, i + batchSize);
+      // Process collectibles sequentially with limited concurrency to avoid DB overload
+      const concurrencyLimit = 2; // Reduced from 5 to prevent DB connection issues
+      const delayBetweenOperations = 2000; // 2 seconds between operations
+      
+      for (let i = 0; i < collectibles.length; i += concurrencyLimit) {
+        const batch = collectibles.slice(i, i + concurrencyLimit);
         
+        // Process batch with limited concurrency
         await Promise.all(
           batch.map(async (collectible) => {
             try {
@@ -49,10 +53,10 @@ export class DailyPriceService {
           })
         );
 
-        // Rate limiting between batches
-        if (i + batchSize < collectibles.length) {
-          console.log(`⏱️  Processed batch ${Math.floor(i/batchSize) + 1}, waiting 5 seconds...`);
-          await new Promise(resolve => setTimeout(resolve, 5000));
+        // Rate limiting between batches - longer delay to reduce DB pressure
+        if (i + concurrencyLimit < collectibles.length) {
+          console.log(`⏱️  Processed batch ${Math.floor(i/concurrencyLimit) + 1}, waiting ${delayBetweenOperations/1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, delayBetweenOperations));
         }
       }
 
