@@ -517,23 +517,23 @@ export function MarketsPage() {
                     Category Price Trends
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    Price history for {categoryResults
+                    Price history for {[...categoryResults]
                       .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.name || 'representative item'}
                   </p>
                 </CardHeader>
                 <CardContent data-testid="chart-price">
                   <PriceChart
-                    collectibleId={categoryResults
+                    collectibleId={[...categoryResults]
                       .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.id || ''}
-                    collectibleName={categoryResults
+                    collectibleName={[...categoryResults]
                       .sort((a, b) => (b.currentPrice || 0) - (a.currentPrice || 0))[0]?.name || ''}
                   />
                 </CardContent>
               </Card>
             )}
 
-            {/* Top Movers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Top Movers & Trending */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Top Gainers */}
               <Card className="bg-card border border-border">
                 <CardHeader>
@@ -641,6 +641,61 @@ export function MarketsPage() {
                   {categoryResults.filter(item => (item.priceChange || 0) < 0).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No declining items in this category
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Most Active */}
+              <Card className="bg-card border border-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-blue-600" />
+                    Most Active
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {[...categoryResults]
+                    .sort((a, b) => (b.activeListings || 0) - (a.activeListings || 0))
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <div
+                        key={`active-${item.id}-${index}`}
+                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handleItemClick(item)}
+                        data-testid={`most-active-${item.id}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">N/A</span>
+                            </div>
+                          )}
+                          <div>
+                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                            <p className="text-xs text-muted-foreground">{item.brand}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">
+                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
+                          </p>
+                          <span className="text-blue-600 dark:text-blue-400 text-xs flex items-center">
+                            <Activity size={10} className="mr-1" />
+                            {item.activeListings || 0} listings
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  {categoryResults.length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground text-sm">
+                      No active items in this category
                     </div>
                   )}
                 </CardContent>
