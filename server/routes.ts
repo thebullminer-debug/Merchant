@@ -270,6 +270,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Market Analytics API - Trading Cards dashboard data
+  app.get("/api/analytics/market", async (req, res) => {
+    try {
+      const { categoryId, period = "1M", limit = 10 } = req.query;
+
+      // Validate required parameters
+      if (!categoryId || typeof categoryId !== 'string') {
+        return res.status(400).json({ message: "categoryId is required" });
+      }
+
+      // Map period to date ranges
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      switch (period) {
+        case '1D':
+          startDate.setDate(endDate.getDate() - 1);
+          break;
+        case '7D':
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case '1M':
+          startDate.setMonth(endDate.getMonth() - 1);
+          break;
+        case '3M':
+          startDate.setMonth(endDate.getMonth() - 3);
+          break;
+        case '1Y':
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          break;
+        case '5Y':
+          startDate.setFullYear(endDate.getFullYear() - 5);
+          break;
+        case '10Y':
+          startDate.setFullYear(endDate.getFullYear() - 10);
+          break;
+        case 'ALL':
+          startDate.setFullYear(1950); // Go back to beginning of data
+          break;
+        default:
+          startDate.setMonth(endDate.getMonth() - 1); // Default to 1M
+      }
+
+      const limitNum = parseInt(limit as string) || 10;
+
+      // Fetch analytics data
+      const [subcategories, topPerformers, topGainers, topLosers] = await Promise.all([
+        storage.getCategoryFacets(categoryId),
+        storage.getTopPerformers(categoryId, startDate, endDate, limitNum),
+        storage.getTopMovers(categoryId, startDate, endDate, 'gainers', limitNum),
+        storage.getTopMovers(categoryId, startDate, endDate, 'losers', limitNum)
+      ]);
+
+      const analyticsData = {
+        period,
+        subcategories,
+        topPerformers,
+        topGainers,
+        topLosers,
+        metadata: {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          totalResults: {
+            performers: topPerformers.length,
+            gainers: topGainers.length,
+            losers: topLosers.length
+          }
+        }
+      };
+
+      res.json(analyticsData);
+    } catch (error) {
+      console.error("Market analytics error:", error);
+      res.status(500).json({ message: "Failed to fetch market analytics" });
+    }
+  });
+
   // Real-time price update endpoint
   app.post("/api/collectibles/:id/update-price", async (req, res) => {
     try {

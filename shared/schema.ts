@@ -203,3 +203,64 @@ export type InsertMedianPrice = z.infer<typeof insertMedianPriceSchema>;
 
 export type Watchlist = typeof watchlists.$inferSelect;
 export type InsertWatchlist = z.infer<typeof insertWatchlistSchema>;
+
+// Analytics types
+export const marketAnalyticsSchema = z.object({
+  period: z.string(),
+  subcategories: z.object({
+    brands: z.array(z.object({
+      name: z.string(),
+      count: z.number()
+    })),
+    sports: z.array(z.object({
+      name: z.string(), 
+      count: z.number()
+    })),
+    eras: z.array(z.object({
+      name: z.string(),
+      count: z.number(),
+      range: z.string()
+    }))
+  }),
+  topPerformers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    brand: z.string().optional(),
+    currentPrice: z.number(),
+    priceChange: z.number(),
+    percentageChange: z.number(),
+    activeListings: z.number(),
+    volume: z.number()
+  })),
+  topGainers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    brand: z.string().optional(),
+    currentPrice: z.number(),
+    previousPrice: z.number(),
+    priceChange: z.number(),
+    percentageChange: z.number(),
+    activeListings: z.number()
+  })),
+  topLosers: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    brand: z.string().optional(),
+    currentPrice: z.number(),
+    previousPrice: z.number(),
+    priceChange: z.number(),
+    percentageChange: z.number(),
+    activeListings: z.number()
+  })),
+  metadata: z.object({
+    startDate: z.string(),
+    endDate: z.string(),
+    totalResults: z.object({
+      performers: z.number(),
+      gainers: z.number(),
+      losers: z.number()
+    })
+  })
+});
+
+export type MarketAnalytics = z.infer<typeof marketAnalyticsSchema>;

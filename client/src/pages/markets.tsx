@@ -10,7 +10,7 @@ import { TrendingItems } from "@/components/trending-items";
 import { PriceChart } from "@/components/price-chart";
 import { Watch, Zap, Disc, Coins, Trophy, Car, Shield, Palette, TrendingUp, TrendingDown, BarChart3, Star, Search, Filter, SlidersHorizontal, Activity, Eye, Bell } from "lucide-react";
 import { useLocation } from "wouter";
-import type { Category, Collectible } from "@shared/schema";
+import type { Category, Collectible, MarketAnalytics } from "@shared/schema";
 
 interface MarketData extends Collectible {
   currentPrice?: number;
@@ -48,6 +48,8 @@ export function MarketsPage() {
   const [sortBy, setSortBy] = useState("market-cap");
   const [priceRange, setPriceRange] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [timeframe, setTimeframe] = useState("1M");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
   // Get search query from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -102,6 +104,25 @@ export function MarketsPage() {
       return response.json();
     },
     enabled: !searchQuery, // Only fetch market data when not searching
+  });
+
+  // Analytics data query for Trading Cards dashboard
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery<MarketAnalytics>({
+    queryKey: ["/api/analytics/market", selectedCategory, timeframe],
+    queryFn: async () => {
+      if (!selectedCategory) throw new Error("Category ID required");
+      
+      const params = new URLSearchParams({
+        categoryId: selectedCategory,
+        period: timeframe,
+        limit: "10"
+      });
+      
+      const response = await fetch(`/api/analytics/market?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch analytics data");
+      return response.json();
+    },
+    enabled: !!selectedCategory && !searchQuery,
   });
 
   const handleCategorySelect = (categoryId: string) => {
@@ -434,82 +455,540 @@ export function MarketsPage() {
                   Market insights and performance data for {categories.find(c => c.id === selectedCategory)?.name?.toLowerCase()}
                 </p>
               </div>
-              <Button 
-                variant="outline" 
-                onClick={() => setSelectedCategory(null)}
-                data-testid="button-clear-category"
-              >
-                Show All Categories
-              </Button>
+              <div className="flex items-center gap-4">
+                {/* Trading Cards specific timeframe selector */}
+                {categories.find(c => c.id === selectedCategory)?.name === 'Trading Cards' && (
+                  <Select value={timeframe} onValueChange={setTimeframe}>
+                    <SelectTrigger className="w-24">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1D">1D</SelectItem>
+                      <SelectItem value="7D">7D</SelectItem>
+                      <SelectItem value="1M">1M</SelectItem>
+                      <SelectItem value="3M">3M</SelectItem>
+                      <SelectItem value="1Y">1Y</SelectItem>
+                      <SelectItem value="5Y">5Y</SelectItem>
+                      <SelectItem value="10Y">10Y</SelectItem>
+                      <SelectItem value="ALL">ALL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedCategory(null)}
+                  data-testid="button-clear-category"
+                >
+                  Show All Categories
+                </Button>
+              </div>
             </div>
 
-            {/* Category KPI Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-card border border-border">
-                <CardContent className="p-6 text-center">
-                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-items">
-                    {categoryResults.length}
+            {/* Trading Cards Dashboard or Basic KPI Stats */}
+            {categories.find(c => c.id === selectedCategory)?.name === 'Trading Cards' && analyticsData ? (
+              <>
+                {/* Subcategory Filters */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground">Subcategories</h3>
+                  <div className="space-y-3">
+                    {/* Brands */}
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Brands</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {analyticsData.subcategories.brands.slice(0, 10).map((brand) => (
+                          <Badge 
+                            key={brand.name} 
+                            variant={selectedSubcategory === brand.name ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedSubcategory(selectedSubcategory === brand.name ? null : brand.name)}
+                            data-testid={`brand-filter-${brand.name}`}
+                          >
+                            {brand.name} ({brand.count})
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sports */}
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Sports</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {analyticsData.subcategories.sports.slice(0, 8).map((sport) => (
+                          <Badge 
+                            key={sport.name} 
+                            variant={selectedSubcategory === sport.name ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedSubcategory(selectedSubcategory === sport.name ? null : sport.name)}
+                            data-testid={`sport-filter-${sport.name}`}
+                          >
+                            {sport.name} ({sport.count})
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Eras */}
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Eras</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {analyticsData.subcategories.eras.map((era) => (
+                          <Badge 
+                            key={era.name} 
+                            variant={selectedSubcategory === era.name ? "default" : "outline"}
+                            className="cursor-pointer"
+                            onClick={() => setSelectedSubcategory(selectedSubcategory === era.name ? null : era.name)}
+                            data-testid={`era-filter-${era.name}`}
+                          >
+                            {era.name} ({era.count}) - {era.range}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-muted-foreground text-sm">Items Available</div>
-                  <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-center">
-                    <Activity size={12} className="mr-1" />
-                    Active market
+                </div>
+
+                {/* Analytics Dashboard - Three columns */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Top Performers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Star className="w-5 h-5 text-yellow-600" />
+                        Top Performers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Best performing cards by volume & growth</p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {analyticsLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-between py-3">
+                            <div className="loading-shimmer h-4 w-32 rounded"></div>
+                            <div className="loading-shimmer h-4 w-16 rounded"></div>
+                          </div>
+                        ))
+                      ) : analyticsData.topPerformers.length > 0 ? (
+                        analyticsData.topPerformers.map((item, index) => (
+                          <div
+                            key={`performer-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`top-performer-${item.id}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
+                              <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
+                            </div>
+                            <div className="text-right ml-2">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <div className={`text-xs flex items-center justify-end ${
+                                item.percentageChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                              }`}>
+                                {item.percentageChange >= 0 ? (
+                                  <TrendingUp className="w-3 h-3 mr-1" />
+                                ) : (
+                                  <TrendingDown className="w-3 h-3 mr-1" />
+                                )}
+                                {item.percentageChange >= 0 ? '+' : ''}{item.percentageChange.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-6">No top performers data available</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Gainers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        Top Gainers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Biggest price increases in {timeframe}</p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {analyticsLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-between py-3">
+                            <div className="loading-shimmer h-4 w-32 rounded"></div>
+                            <div className="loading-shimmer h-4 w-16 rounded"></div>
+                          </div>
+                        ))
+                      ) : analyticsData.topGainers.length > 0 ? (
+                        analyticsData.topGainers.map((item, index) => (
+                          <div
+                            key={`gainer-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`top-gainer-${item.id}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
+                              <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
+                            </div>
+                            <div className="text-right ml-2">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <div className="text-green-600 dark:text-green-400 text-xs flex items-center justify-end">
+                                <TrendingUp className="w-3 h-3 mr-1" />
+                                +{item.percentageChange.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-6">No gainers data available</p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Losers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingDown className="w-5 h-5 text-red-600" />
+                        Top Losers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Biggest price decreases in {timeframe}</p>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {analyticsLoading ? (
+                        Array.from({ length: 5 }).map((_, i) => (
+                          <div key={i} className="flex items-center justify-between py-3">
+                            <div className="loading-shimmer h-4 w-32 rounded"></div>
+                            <div className="loading-shimmer h-4 w-16 rounded"></div>
+                          </div>
+                        ))
+                      ) : analyticsData.topLosers.length > 0 ? (
+                        analyticsData.topLosers.map((item, index) => (
+                          <div
+                            key={`loser-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`top-loser-${item.id}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
+                              <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
+                            </div>
+                            <div className="text-right ml-2">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <div className="text-red-600 dark:text-red-400 text-xs flex items-center justify-end">
+                                <TrendingDown className="w-3 h-3 mr-1" />
+                                {item.percentageChange.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-6">No losers data available</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            ) : (
+              /* Basic KPI Stats for non-Trading Cards categories */
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="bg-card border border-border">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-items">
+                      {categoryResults.length}
+                    </div>
+                    <div className="text-muted-foreground text-sm">Items Available</div>
+                    <div className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center justify-center">
+                      <Activity size={12} className="mr-1" />
+                      Active market
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border border-border">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-price">
+                      {categoryResults.length > 0 
+                        ? `$${Math.round(categoryResults.reduce((sum, item) => sum + (item.currentPrice || 0), 0) / categoryResults.length).toLocaleString()}`
+                        : 'N/A'}
+                    </div>
+                    <div className="text-muted-foreground text-sm">Avg. Price</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Median value
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border border-border">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-change">
+                      {categoryResults.length > 0 
+                        ? `${(categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length).toFixed(1)}%`
+                        : 'N/A'}
+                    </div>
+                    <div className="text-muted-foreground text-sm">Avg. Change</div>
+                    <div className={`text-xs mt-1 flex items-center justify-center ${
+                      categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0 
+                        ? <TrendingUp size={12} className="mr-1" />
+                        : <TrendingDown size={12} className="mr-1" />
+                      }
+                      24h trend
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border border-border">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-active-listings">
+                      {categoryResults.reduce((sum, item) => sum + (item.activeListings || 0), 0)}
+                    </div>
+                    <div className="text-muted-foreground text-sm">Active Listings</div>
+                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center justify-center">
+                      <Eye size={12} className="mr-1" />
+                      Live market
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Analytics Dashboard - Show detailed analytics when category selected */}
+            {selectedCategory && analyticsData && !analyticsLoading && (
+              <div className="space-y-6">
+                {/* Subcategory Filters */}
+                {analyticsData.subcategories && (
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Filter className="w-5 h-5 text-primary" />
+                        Category Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Brands */}
+                        <div>
+                          <h4 className="font-semibold text-sm text-foreground mb-3">Top Brands</h4>
+                          <div className="space-y-2">
+                            {analyticsData.subcategories.brands.slice(0, 5).map((brand, index) => (
+                              <div key={`brand-${index}`} className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">{brand.name}</span>
+                                <Badge variant="secondary" className="text-xs">{brand.count}</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sports */}
+                        <div>
+                          <h4 className="font-semibold text-sm text-foreground mb-3">Sports</h4>
+                          <div className="space-y-2">
+                            {analyticsData.subcategories.sports.slice(0, 5).map((sport, index) => (
+                              <div key={`sport-${index}`} className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">{sport.name}</span>
+                                <Badge variant="secondary" className="text-xs">{sport.count}</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Eras */}
+                        <div>
+                          <h4 className="font-semibold text-sm text-foreground mb-3">Eras</h4>
+                          <div className="space-y-2">
+                            {analyticsData.subcategories.eras.slice(0, 5).map((era, index) => (
+                              <div key={`era-${index}`} className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">{era.name}</span>
+                                <Badge variant="secondary" className="text-xs">{era.count}</Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Analytics Sections - Top Performers, Gainers, Losers */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Top Performers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-600" />
+                        Top Performers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Best performing items by volume and price change
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData.topPerformers.length > 0 ? (
+                        analyticsData.topPerformers.slice(0, 5).map((item, index) => (
+                          <div
+                            key={`performer-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`top-performer-${item.id}`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                                <Star size={16} className="text-yellow-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                                <p className="text-xs text-muted-foreground">{item.brand || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <span className={`text-xs flex items-center ${
+                                item.percentageChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                              }`}>
+                                {item.percentageChange >= 0 ? 
+                                  <TrendingUp size={10} className="mr-1" /> : 
+                                  <TrendingDown size={10} className="mr-1" />
+                                }
+                                {item.percentageChange >= 0 ? '+' : ''}{item.percentageChange.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground text-sm">
+                          No performance data available
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Gainers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-green-600" />
+                        Top Gainers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Biggest price increases in {timeframe}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData.topGainers.length > 0 ? (
+                        analyticsData.topGainers.slice(0, 5).map((item, index) => (
+                          <div
+                            key={`gainer-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`analytics-gainer-${item.id}`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                                <TrendingUp size={16} className="text-green-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                                <p className="text-xs text-muted-foreground">{item.brand || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <span className="text-green-600 dark:text-green-400 text-xs flex items-center">
+                                <TrendingUp size={10} className="mr-1" />
+                                +{item.percentageChange.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground text-sm">
+                          No gainers in this period
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Top Losers */}
+                  <Card className="bg-card border border-border">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingDown className="w-5 h-5 text-red-600" />
+                        Top Losers
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Biggest price decreases in {timeframe}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {analyticsData.topLosers.length > 0 ? (
+                        analyticsData.topLosers.slice(0, 5).map((item, index) => (
+                          <div
+                            key={`loser-${item.id}-${index}`}
+                            className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => setLocation(`/item/${item.id}`)}
+                            data-testid={`analytics-loser-${item.id}`}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                                <TrendingDown size={16} className="text-red-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
+                                <p className="text-xs text-muted-foreground">{item.brand || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm">
+                                ${item.currentPrice.toLocaleString()}
+                              </p>
+                              <span className="text-red-600 dark:text-red-400 text-xs flex items-center">
+                                <TrendingDown size={10} className="mr-1" />
+                                {item.percentageChange.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground text-sm">
+                          No losers in this period
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {/* Loading state for analytics */}
+            {selectedCategory && analyticsLoading && (
+              <Card className="bg-card border border-border">
+                <CardContent className="p-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading market analytics...</p>
                   </div>
                 </CardContent>
               </Card>
+            )}
 
-              <Card className="bg-card border border-border">
-                <CardContent className="p-6 text-center">
-                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-price">
-                    {categoryResults.length > 0 
-                      ? `$${Math.round(categoryResults.reduce((sum, item) => sum + (item.currentPrice || 0), 0) / categoryResults.length).toLocaleString()}`
-                      : 'N/A'}
-                  </div>
-                  <div className="text-muted-foreground text-sm">Avg. Price</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Median value
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border border-border">
-                <CardContent className="p-6 text-center">
-                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-avg-change">
-                    {categoryResults.length > 0 
-                      ? `${(categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length).toFixed(1)}%`
-                      : 'N/A'}
-                  </div>
-                  <div className="text-muted-foreground text-sm">Avg. Change</div>
-                  <div className={`text-xs mt-1 flex items-center justify-center ${
-                    categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
-                    {categoryResults.length > 0 && (categoryResults.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryResults.length) >= 0 
-                      ? <TrendingUp size={12} className="mr-1" />
-                      : <TrendingDown size={12} className="mr-1" />
-                    }
-                    24h trend
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card border border-border">
-                <CardContent className="p-6 text-center">
-                  <div className="text-2xl font-bold text-foreground mb-2" data-testid="kpi-active-listings">
-                    {categoryResults.reduce((sum, item) => sum + (item.activeListings || 0), 0)}
-                  </div>
-                  <div className="text-muted-foreground text-sm">Active Listings</div>
-                  <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center justify-center">
-                    <Eye size={12} className="mr-1" />
-                    Live market
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Category Price Chart - Show chart for highest value item in category */}
-            {categoryResults.length > 0 && (
+            {/* Fallback Price Chart - Show only when no analytics data available */}
+            {selectedCategory && !analyticsData && !analyticsLoading && categoryResults.length > 0 && (
               <Card className="bg-card border border-border">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -532,175 +1011,6 @@ export function MarketsPage() {
               </Card>
             )}
 
-            {/* Top Movers & Trending */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Top Gainers */}
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    Top Gainers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {categoryResults
-                    .filter(item => (item.priceChange || 0) > 0)
-                    .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
-                    .slice(0, 5)
-                    .map((item, index) => (
-                      <div
-                        key={`gainer-${item.id}-${index}`}
-                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleItemClick(item)}
-                        data-testid={`top-gainer-${item.id}`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-10 h-10 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                              <span className="text-xs text-muted-foreground">N/A</span>
-                            </div>
-                          )}
-                          <div>
-                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
-                            <p className="text-xs text-muted-foreground">{item.brand}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">
-                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
-                          </p>
-                          <span className="text-green-600 dark:text-green-400 text-xs flex items-center">
-                            <TrendingUp size={10} className="mr-1" />
-                            +{(item.priceChange || 0).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  {categoryResults.filter(item => (item.priceChange || 0) > 0).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No gaining items in this category
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Top Losers */}
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingDown className="w-5 h-5 text-red-600" />
-                    Top Losers
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {categoryResults
-                    .filter(item => (item.priceChange || 0) < 0)
-                    .sort((a, b) => (a.priceChange || 0) - (b.priceChange || 0))
-                    .slice(0, 5)
-                    .map((item, index) => (
-                      <div
-                        key={`loser-${item.id}-${index}`}
-                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleItemClick(item)}
-                        data-testid={`top-loser-${item.id}`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-10 h-10 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                              <span className="text-xs text-muted-foreground">N/A</span>
-                            </div>
-                          )}
-                          <div>
-                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
-                            <p className="text-xs text-muted-foreground">{item.brand}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">
-                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
-                          </p>
-                          <span className="text-red-600 dark:text-red-400 text-xs flex items-center">
-                            <TrendingDown size={10} className="mr-1" />
-                            {(item.priceChange || 0).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  {categoryResults.filter(item => (item.priceChange || 0) < 0).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No declining items in this category
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Most Active */}
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-blue-600" />
-                    Most Active
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {[...categoryResults]
-                    .sort((a, b) => (b.activeListings || 0) - (a.activeListings || 0))
-                    .slice(0, 5)
-                    .map((item, index) => (
-                      <div
-                        key={`active-${item.id}-${index}`}
-                        className="flex items-center justify-between py-3 border-b border-border last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => handleItemClick(item)}
-                        data-testid={`most-active-${item.id}`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          {item.imageUrl ? (
-                            <img
-                              src={item.imageUrl}
-                              alt={item.name}
-                              className="w-10 h-10 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                              <span className="text-xs text-muted-foreground">N/A</span>
-                            </div>
-                          )}
-                          <div>
-                            <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
-                            <p className="text-xs text-muted-foreground">{item.brand}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">
-                            {item.currentPrice ? `$${item.currentPrice.toLocaleString()}` : "N/A"}
-                          </p>
-                          <span className="text-blue-600 dark:text-blue-400 text-xs flex items-center">
-                            <Activity size={10} className="mr-1" />
-                            {item.activeListings || 0} listings
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  {categoryResults.length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No active items in this category
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Quick Actions */}
             <Card className="bg-card border border-border">
