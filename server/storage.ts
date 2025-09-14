@@ -377,7 +377,7 @@ export class DatabaseStorage implements IStorage {
         return {
           id: row.collectible.id,
           name: row.collectible.name,
-          brand: row.collectible.brand,
+          brand: row.collectible.brand || undefined,
           currentPrice: current,
           previousPrice: previous,
           priceChange,
@@ -459,7 +459,7 @@ export class DatabaseStorage implements IStorage {
         return {
           id: row.collectible.id,
           name: row.collectible.name,
-          brand: row.collectible.brand,
+          brand: row.collectible.brand || undefined,
           currentPrice: current,
           priceChange,
           percentageChange,
@@ -505,8 +505,30 @@ export class DatabaseStorage implements IStorage {
       count: row.count
     }));
 
-    // Extract sports from names (basic pattern matching for trading cards)
-    const sportsKeywords = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Soccer', 'Pokemon', 'Magic', 'Yu-Gi-Oh'];
+    // Get category-specific sports/subcategories based on the category type
+    const categoryResult = await db.select({ name: categories.name })
+      .from(categories)
+      .where(eq(categories.id, categoryId))
+      .limit(1);
+    
+    const categoryName = categoryResult[0]?.name || '';
+    
+    let sportsKeywords: string[] = [];
+    
+    // Define category-specific keywords
+    if (categoryName.toLowerCase().includes('trading') || categoryName.toLowerCase().includes('card')) {
+      sportsKeywords = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Soccer', 'Pokemon', 'Magic', 'Yu-Gi-Oh'];
+    } else if (categoryName.toLowerCase().includes('sports')) {
+      sportsKeywords = ['Baseball', 'Basketball', 'Football', 'Hockey', 'Soccer', 'Golf', 'Tennis', 'Boxing'];
+    } else if (categoryName.toLowerCase().includes('vinyl') || categoryName.toLowerCase().includes('records')) {
+      sportsKeywords = ['Rock', 'Jazz', 'Blues', 'Classical', 'Pop', 'Hip Hop', 'Country', 'Electronic'];
+    } else if (categoryName.toLowerCase().includes('watch')) {
+      sportsKeywords = ['Luxury', 'Sport', 'Dress', 'Dive', 'Aviation', 'Racing', 'Military'];
+    } else {
+      // For other categories, use generic subcategories
+      sportsKeywords = ['Vintage', 'Modern', 'Limited Edition', 'Rare', 'Premium'];
+    }
+    
     const sportsPromises = sportsKeywords.map(async sport => {
       const [result] = await db.select({
         count: count()
@@ -514,7 +536,7 @@ export class DatabaseStorage implements IStorage {
       .from(collectibles)
       .where(and(
         eq(collectibles.categoryId, categoryId),
-        sql`${collectibles.name} ILIKE ${`%${sport}%`} OR ${collectibles.brand} ILIKE ${`%${sport}%`}`
+        sql`${collectibles.name} ILIKE ${`%${sport}%`} OR ${collectibles.brand} ILIKE ${`%${sport}%`} OR ${collectibles.model} ILIKE ${`%${sport}%`}`
       ));
       
       return {

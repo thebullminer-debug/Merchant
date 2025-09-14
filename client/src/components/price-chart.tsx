@@ -66,24 +66,42 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   const chartData = {
     labels: priceData.map((item) => {
       const date = new Date(item.date);
-      // For multi-year timeframes (5Y, 10Y, ALL), show years for multi-year data
-      if (selectedRange >= 1825) { // 5Y or longer
-        // Check if data spans multiple years
-        const allDates = priceData.map(p => new Date(p.date));
-        const minYear = Math.min(...allDates.map(d => d.getFullYear()));
-        const maxYear = Math.max(...allDates.map(d => d.getFullYear()));
-        
-        if (maxYear - minYear > 2) {
-          // Multi-year data: show years
-          return date.getFullYear().toString();
-        }
-      }
       
-      // Default: show month and day for shorter timeframes
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
+      // Adaptive labeling based on timeframe and data density
+      if (selectedRange >= 999) {
+        // ALL timeframe: show years for very long historical data
+        return date.getFullYear().toString();
+      } else if (selectedRange >= 3650) {
+        // 10Y timeframe: show year-month format
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short' 
+        });
+      } else if (selectedRange >= 1825) {
+        // 5Y timeframe: show year-month format
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short' 
+        });
+      } else if (selectedRange >= 365) {
+        // 1Y timeframe: show month-year format
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: '2-digit' 
+        });
+      } else if (selectedRange >= 30) {
+        // 1M-3M timeframe: show month-day format
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      } else {
+        // Short timeframes (1D-7D): show month-day format
+        return date.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      }
     }),
     datasets: [
       {

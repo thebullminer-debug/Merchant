@@ -125,10 +125,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const endDate = new Date();
         const startDate = new Date(endDate);
         
-        if (daysNum >= 999) {
+        if (daysNum === 999) {
           // "ALL" timeframe - get all historical data
           startDate.setFullYear(1950); // Go back to 1950 to catch all historical data
+        } else if (daysNum >= 3650) {
+          // 10Y timeframe
+          startDate.setFullYear(endDate.getFullYear() - 10);
+          startDate.setMonth(endDate.getMonth());
+          startDate.setDate(endDate.getDate());
+        } else if (daysNum >= 1825) {
+          // 5Y timeframe
+          startDate.setFullYear(endDate.getFullYear() - 5);
+          startDate.setMonth(endDate.getMonth());
+          startDate.setDate(endDate.getDate());
+        } else if (daysNum >= 90) {
+          // 3M+ timeframes: use proper month calculation to avoid date overflow
+          const months = Math.floor(daysNum / 30.44); // Average days per month
+          startDate.setMonth(endDate.getMonth() - months);
         } else {
+          // Short timeframes: safe to use setDate
           startDate.setDate(endDate.getDate() - daysNum);
         }
         
