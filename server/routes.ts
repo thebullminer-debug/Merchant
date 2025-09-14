@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertCollectibleSchema, insertCategorySchema } from "@shared/schema";
+import { insertCollectibleSchema, insertCategorySchema, insertMedianPriceSchema } from "@shared/schema";
 import { marketplaceScraperService } from "./services/marketplace-scraper";
 import { addVinylRecords } from "./simple-vinyl-seed";
 import { dailyPriceService } from "./services/daily-price-service";
@@ -103,12 +103,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Price data
   app.get("/api/collectibles/:id/prices", async (req, res) => {
     try {
-      const { days } = req.query;
-      const prices = await storage.getMedianPrices(
-        req.params.id,
-        days ? parseInt(days as string) : undefined
-      );
-      res.json(prices);
+      const { days, start, end, granularity, source } = req.query;
+      
+      // Enhanced endpoint: support both legacy 'days' and new date range queries
+      if (start || end) {
+        // Date range query
+        const startDate = start ? new Date(start as string) : new Date('1952-01-01');
+        const endDate = end ? new Date(end as string) : new Date();
+        
+        const prices = await storage.getMedianPricesRange(
+          req.params.id,
+          startDate,
+          endDate,
+          granularity as string,
+          source as string
+        );
+        res.json(prices);
+      } else {
+        // Legacy days-based query
+        const prices = await storage.getMedianPrices(
+          req.params.id,
+          days ? parseInt(days as string) : undefined
+        );
+        res.json(prices);
+      }
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch price data" });
     }
@@ -306,6 +324,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Vinyl import error:", error);
       res.status(500).json({ message: "Failed to import vinyl records" });
+    }
+  });
+
+  // Price sources
+  app.get("/api/price-sources", async (_req, res) => {
+    try {
+      const sources = await storage.getPriceSources();
+      res.json(sources);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch price sources" });
+    }
+  });
+
+  // Bulk import historical prices
+  app.post("/api/collectibles/:id/prices/bulk", async (req, res) => {
+    try {
+      const { prices } = req.body;
+      if (!Array.isArray(prices)) {
+        return res.status(400).json({ message: "Prices must be an array" });
+      }
+
+      // Add collectibleId and convert dates to proper Date objects
+      const pricesWithId = prices.map(price => ({
+        ...price,
+        collectibleId: req.params.id,
+        date: new Date(price.date), // Ensure date is converted to Date object
+        medianPrice: parseFloat(price.medianPrice), // Ensure numeric values
+        confidence: parseFloat(price.confidence),
+        activeListings: parseInt(price.activeListings) || 0,
+        inflationAdjusted: parseInt(price.inflationAdjusted) || 0
+      }));
+
+      const result = await storage.bulkInsertMedianPrices(pricesWithId);
+      res.json({ 
+        message: "Historical prices imported successfully",
+        count: result.length 
+      });
+    } catch (error) {
+      console.error("Bulk import error:", error);
+      res.status(500).json({ message: "Failed to import historical prices" });
     }
   });
 

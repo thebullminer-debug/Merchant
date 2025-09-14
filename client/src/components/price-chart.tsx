@@ -44,7 +44,7 @@ const timeRanges = [
 ];
 
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
-  const [selectedRange, setSelectedRange] = useState(30);
+  const [selectedRange, setSelectedRange] = useState(999);
 
   const { data: priceData = [], isLoading } = useQuery<MedianPrice[]>({
     queryKey: ["/api/collectibles", collectibleId, "prices", selectedRange],

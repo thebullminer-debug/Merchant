@@ -1,10 +1,11 @@
 import { 
-  users, collectibles, categories, priceHistory, medianPrices, watchlists,
+  users, collectibles, categories, priceHistory, medianPrices, watchlists, priceSources,
   type User, type InsertUser, 
   type Collectible, type InsertCollectible,
   type Category, type InsertCategory,
   type PriceHistory, type InsertPriceHistory,
   type MedianPrice, type InsertMedianPrice,
+  type PriceSource, type InsertPriceSource,
   type Watchlist, type InsertWatchlist
 } from "@shared/schema";
 import { db } from "./db";
@@ -32,8 +33,15 @@ export interface IStorage {
   getPriceHistory(collectibleId: string, days?: number): Promise<PriceHistory[]>;
   addPriceData(priceData: InsertPriceHistory): Promise<PriceHistory>;
   getMedianPrices(collectibleId: string, days?: number): Promise<MedianPrice[]>;
+  getMedianPricesRange(collectibleId: string, startDate: Date, endDate: Date, granularity?: string, sourceId?: string): Promise<MedianPrice[]>;
   addMedianPrice(medianPrice: InsertMedianPrice): Promise<MedianPrice>;
+  bulkInsertMedianPrices(prices: InsertMedianPrice[]): Promise<MedianPrice[]>;
   getCurrentPrice(collectibleId: string): Promise<{ price: number, change: number, activeListings: number } | null>;
+  
+  // Price source operations
+  getPriceSources(): Promise<PriceSource[]>;
+  getPriceSourceByName(name: string): Promise<PriceSource | undefined>;
+  addPriceSource(source: InsertPriceSource): Promise<PriceSource>;
 
   // Watchlist operations
   getUserWatchlist(userId: string): Promise<Watchlist[]>;
@@ -177,9 +185,44 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(medianPrices.date));
   }
 
+  async getMedianPricesRange(
+    collectibleId: string, 
+    startDate: Date, 
+    endDate: Date, 
+    granularity?: string, 
+    sourceId?: string
+  ): Promise<MedianPrice[]> {
+    const conditions = [
+      eq(medianPrices.collectibleId, collectibleId),
+      gte(medianPrices.date, startDate),
+      lte(medianPrices.date, endDate)
+    ];
+
+    if (granularity) {
+      conditions.push(eq(medianPrices.granularity, granularity));
+    }
+
+    if (sourceId) {
+      conditions.push(eq(medianPrices.sourceId, sourceId));
+    }
+
+    return await db.select().from(medianPrices)
+      .where(and(...conditions))
+      .orderBy(asc(medianPrices.date));
+  }
+
   async addMedianPrice(medianPrice: InsertMedianPrice): Promise<MedianPrice> {
     const [newMedianPrice] = await db.insert(medianPrices).values(medianPrice).returning();
     return newMedianPrice;
+  }
+
+  async bulkInsertMedianPrices(prices: InsertMedianPrice[]): Promise<MedianPrice[]> {
+    if (prices.length === 0) return [];
+    
+    return await db.insert(medianPrices)
+      .values(prices)
+      .onConflictDoNothing()
+      .returning();
   }
 
   async getCurrentPrice(collectibleId: string): Promise<{ price: number, change: number, activeListings: number } | null> {
@@ -200,6 +243,23 @@ export class DatabaseStorage implements IStorage {
       change: Number(result.change) || 0,
       activeListings: result.activeListings || 0
     };
+  }
+
+  async getPriceSources(): Promise<PriceSource[]> {
+    return await db.select().from(priceSources)
+      .where(eq(priceSources.isActive, 1))
+      .orderBy(asc(priceSources.name));
+  }
+
+  async getPriceSourceByName(name: string): Promise<PriceSource | undefined> {
+    const [source] = await db.select().from(priceSources)
+      .where(eq(priceSources.name, name));
+    return source || undefined;
+  }
+
+  async addPriceSource(source: InsertPriceSource): Promise<PriceSource> {
+    const [newSource] = await db.insert(priceSources).values(source).returning();
+    return newSource;
   }
 
   async getUserWatchlist(userId: string): Promise<Watchlist[]> {

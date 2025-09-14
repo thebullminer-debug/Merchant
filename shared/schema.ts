@@ -55,18 +55,35 @@ export const priceHistory = pgTable("price_history", {
   sourceIdx: index("price_history_source_idx").on(table.source),
 }));
 
+export const priceSources = pgTable("price_sources", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(), // "PSA", "VCP", "SportsCardsPro", "eBay", "Heritage"
+  type: text("type").notNull(), // "api", "scraper", "manual", "import"
+  baseUrl: text("base_url"),
+  isActive: integer("is_active").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const medianPrices = pgTable("median_prices", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   collectibleId: varchar("collectible_id").references(() => collectibles.id),
   date: timestamp("date").notNull(),
-  medianPrice: decimal("median_price", { precision: 10, scale: 2 }).notNull(),
+  medianPrice: decimal("median_price", { precision: 12, scale: 2 }).notNull(), // Increased precision for historical values
   activeListings: integer("active_listings").default(0),
   priceRange: jsonb("price_range"),
   dayChange: decimal("day_change", { precision: 5, scale: 2 }), // percentage change
+  sourceId: varchar("source_id").references(() => priceSources.id),
+  granularity: text("granularity").default("day"), // "day", "month", "year"
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("1.00"), // 0.00-1.00 for historical estimates
+  currency: text("currency").default("USD"),
+  inflationAdjusted: integer("inflation_adjusted").default(0), // 0 = nominal, 1 = real/adjusted
   calculatedAt: timestamp("calculated_at").defaultNow(),
 }, (table) => ({
   collectibleIdx: index("median_prices_collectible_idx").on(table.collectibleId),
   dateIdx: index("median_prices_date_idx").on(table.date),
+  sourceIdx: index("median_prices_source_idx").on(table.sourceId),
+  // Unique constraint to prevent duplicates for same collectible+date+source+granularity
+  uniquePrice: index("median_prices_unique_idx").on(table.collectibleId, table.date, table.sourceId, table.granularity),
 }));
 
 export const watchlists = pgTable("watchlists", {
@@ -103,10 +120,18 @@ export const priceHistoryRelations = relations(priceHistory, ({ one }) => ({
   }),
 }));
 
+export const priceSourcesRelations = relations(priceSources, ({ many }) => ({
+  medianPrices: many(medianPrices),
+}));
+
 export const medianPricesRelations = relations(medianPrices, ({ one }) => ({
   collectible: one(collectibles, {
     fields: [medianPrices.collectibleId],
     references: [collectibles.id],
+  }),
+  source: one(priceSources, {
+    fields: [medianPrices.sourceId],
+    references: [priceSources.id],
   }),
 }));
 
@@ -142,6 +167,11 @@ export const insertPriceHistorySchema = createInsertSchema(priceHistory).omit({
   scrapedAt: true,
 });
 
+export const insertPriceSourceSchema = createInsertSchema(priceSources).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertMedianPriceSchema = createInsertSchema(medianPrices).omit({
   id: true,
   calculatedAt: true,
@@ -164,6 +194,9 @@ export type InsertCollectible = z.infer<typeof insertCollectibleSchema>;
 
 export type PriceHistory = typeof priceHistory.$inferSelect;
 export type InsertPriceHistory = z.infer<typeof insertPriceHistorySchema>;
+
+export type PriceSource = typeof priceSources.$inferSelect;
+export type InsertPriceSource = z.infer<typeof insertPriceSourceSchema>;
 
 export type MedianPrice = typeof medianPrices.$inferSelect;
 export type InsertMedianPrice = z.infer<typeof insertMedianPriceSchema>;

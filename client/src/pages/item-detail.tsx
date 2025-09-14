@@ -31,6 +31,11 @@ export default function ItemDetail() {
     enabled: !!id,
   });
 
+  const { data: currentPrice } = useQuery<{ price: number; change: number; activeListings: number }>({
+    queryKey: ["/api/collectibles", id, "current-price"],
+    enabled: !!id,
+  });
+
   const handleWatchlist = () => {
     setIsWatchlisted(!isWatchlisted);
     // TODO: Implement actual watchlist API call
@@ -38,14 +43,26 @@ export default function ItemDetail() {
 
   const handleShare = async () => {
     try {
-      await navigator.share({
-        title: collectible?.name,
-        text: `Check out this ${collectible?.name} on Merchant`,
-        url: window.location.href,
-      });
-    } catch {
-      // Fallback to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      if (navigator.share) {
+        await navigator.share({
+          title: collectible?.name,
+          text: `Check out this ${collectible?.name} on Merchant`,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        // Show a toast or notification that URL was copied
+        console.log("URL copied to clipboard");
+      }
+    } catch (error) {
+      // Final fallback - copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        console.log("URL copied to clipboard");
+      } catch (clipboardError) {
+        console.error("Failed to copy URL:", clipboardError);
+      }
     }
   };
 
@@ -233,14 +250,14 @@ export default function ItemDetail() {
               <div className="text-center py-4 border-t border-b border-border">
                 <p className="text-sm text-muted-foreground mb-1">Current Market Price</p>
                 <p className="text-3xl font-bold text-primary" data-testid="current-price">
-                  {collectible.currentPrice ? `$${collectible.currentPrice.toLocaleString()}` : "Price unavailable"}
+                  {currentPrice ? `$${currentPrice.price.toLocaleString()}` : "Price unavailable"}
                 </p>
-                {collectible.priceChangePercent !== undefined && (
+                {currentPrice && (
                   <p className={`text-sm flex items-center justify-center gap-1 ${
-                    collectible.priceChangePercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    currentPrice.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
-                    {collectible.priceChangePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                    {collectible.priceChangePercent >= 0 ? '+' : ''}{collectible.priceChangePercent.toFixed(1)}% (24h)
+                    {currentPrice.change >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    {currentPrice.change >= 0 ? '+' : ''}{currentPrice.change.toFixed(1)}% (24h)
                   </p>
                 )}
               </div>
