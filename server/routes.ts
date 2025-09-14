@@ -147,11 +147,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate.setDate(endDate.getDate() - daysNum);
         }
         
+        // Use appropriate granularity for timeframe
+        let granularity: string | undefined;
+        if (daysNum <= 7) {
+          granularity = 'day'; // Daily data for short timeframes
+        } else if (daysNum <= 365) {
+          granularity = 'day'; // Daily data for up to 1 year
+        } else if (daysNum < 999) {
+          granularity = 'day'; // Use daily data for multi-year timeframes to avoid mixing with historical yearly data
+        }
+        // For "ALL" timeframe (daysNum === 999), don't filter granularity to show all historical data
+        
         const prices = await storage.getMedianPricesRange(
           req.params.id,
           startDate,
           endDate,
-          undefined, // Don't filter by granularity for days-based queries
+          granularity,
           undefined  // Don't filter by source for days-based queries
         );
         res.json(prices);
