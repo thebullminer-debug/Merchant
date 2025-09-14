@@ -23,7 +23,7 @@ function Router() {
       <Route path="/watchlist" component={WatchlistPage} />
       <Route path="/portfolio" component={Portfolio} />
       <Route path="/sources" component={SourcesPage} />
-      <Route path="/collectibles/:id" component={ItemDetail} />
+      <Route path="/item/:id" component={ItemDetail} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -62,12 +62,27 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   });
 
   const chartData = {
-    labels: priceData.map((item) => 
-      new Date(item.date).toLocaleDateString('en-US', { 
+    labels: priceData.map((item) => {
+      const date = new Date(item.date);
+      // For ALL timeframe (999 days), show years for multi-decade data
+      if (selectedRange === 999) {
+        // Check if data spans multiple years
+        const allDates = priceData.map(p => new Date(p.date));
+        const minYear = Math.min(...allDates.map(d => d.getFullYear()));
+        const maxYear = Math.max(...allDates.map(d => d.getFullYear()));
+        
+        if (maxYear - minYear > 2) {
+          // Multi-year data: show years
+          return date.getFullYear().toString();
+        }
+      }
+      
+      // Default: show month and day for shorter timeframes
+      return date.toLocaleDateString('en-US', { 
         month: 'short', 
         day: 'numeric' 
-      })
-    ),
+      });
+    }),
     datasets: [
       {
         label: "Median Price",
