@@ -147,25 +147,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate.setDate(endDate.getDate() - daysNum);
         }
         
-        // Use appropriate granularity for timeframe
-        let granularity: string | undefined;
-        if (daysNum <= 7) {
-          granularity = 'day'; // Daily data for short timeframes
-        } else if (daysNum <= 365) {
-          granularity = 'day'; // Daily data for up to 1 year
-        } else if (daysNum < 999) {
-          granularity = 'day'; // Use daily data for multi-year timeframes to avoid mixing with historical yearly data
-        }
-        // For "ALL" timeframe (daysNum === 999), don't filter granularity to show all historical data
+        // Use daily granularity for all timeframes except ALL to avoid mixing yearly/daily data
+        const effectiveGranularity = daysNum === 999 ? undefined : 'day';
         
         const prices = await storage.getMedianPricesRange(
           req.params.id,
           startDate,
           endDate,
-          granularity,
+          effectiveGranularity,
           undefined  // Don't filter by source for days-based queries
         );
-        res.json(prices);
+        
+        // Defensive filter to ensure consistent granularity for non-ALL timeframes
+        let filteredPrices = prices;
+        if (effectiveGranularity === 'day') {
+          const originalCount = prices.length;
+          filteredPrices = prices.filter(p => p.granularity === 'day');
+          if (filteredPrices.length < originalCount) {
+            console.warn(`Granularity filter bypassed: removed ${originalCount - filteredPrices.length} non-daily records for ${daysNum}Y timeframe`);
+            console.warn(`Removed records:`, prices.filter(p => p.granularity !== 'day').map(p => ({ date: p.date, granularity: p.granularity })));
+          }
+        }
+        
+        res.json(filteredPrices);
       } else {
         // Default to recent data if no parameters
         const endDate = new Date();
