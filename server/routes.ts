@@ -119,11 +119,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
           source as string
         );
         res.json(prices);
-      } else {
-        // Legacy days-based query
-        const prices = await storage.getMedianPrices(
+      } else if (days) {
+        // Convert days-based query to date range query (more reliable)
+        const daysNum = parseInt(days as string);
+        const endDate = new Date();
+        const startDate = new Date(endDate);
+        
+        if (daysNum >= 999) {
+          // "ALL" timeframe - get all historical data
+          startDate.setFullYear(1950); // Go back to 1950 to catch all historical data
+        } else {
+          startDate.setDate(endDate.getDate() - daysNum);
+        }
+        
+        const prices = await storage.getMedianPricesRange(
           req.params.id,
-          days ? parseInt(days as string) : undefined
+          startDate,
+          endDate,
+          undefined, // Don't filter by granularity for days-based queries
+          undefined  // Don't filter by source for days-based queries
+        );
+        res.json(prices);
+      } else {
+        // Default to recent data if no parameters
+        const endDate = new Date();
+        const startDate = new Date(endDate);
+        startDate.setDate(endDate.getDate() - 30); // Default to 30 days
+        
+        const prices = await storage.getMedianPricesRange(
+          req.params.id,
+          startDate,
+          endDate,
+          undefined, // Don't filter by granularity for default query
+          undefined  // Don't filter by source for default query
         );
         res.json(prices);
       }
