@@ -574,8 +574,8 @@ export function MarketsPage() {
                             onClick={() => setLocation(`/item/${item.id}`)}
                             data-testid={`top-performer-${item.id}`}
                           >
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                            <div className="flex-1 min-w-0 pr-2">
+                              <h4 className="font-medium text-sm text-foreground line-clamp-2 leading-tight mb-1">{item.name}</h4>
                               <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
                               <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
                             </div>
@@ -627,8 +627,8 @@ export function MarketsPage() {
                             onClick={() => setLocation(`/item/${item.id}`)}
                             data-testid={`top-gainer-${item.id}`}
                           >
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                            <div className="flex-1 min-w-0 pr-2">
+                              <h4 className="font-medium text-sm text-foreground line-clamp-2 leading-tight mb-1">{item.name}</h4>
                               <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
                               <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
                             </div>
@@ -674,8 +674,8 @@ export function MarketsPage() {
                             onClick={() => setLocation(`/item/${item.id}`)}
                             data-testid={`top-loser-${item.id}`}
                           >
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
+                            <div className="flex-1 min-w-0 pr-2">
+                              <h4 className="font-medium text-sm text-foreground line-clamp-2 leading-tight mb-1">{item.name}</h4>
                               <p className="text-xs text-muted-foreground truncate">{item.brand || 'Unknown'}</p>
                               <p className="text-xs text-muted-foreground">{item.activeListings} active</p>
                             </div>
