@@ -40,6 +40,8 @@ const timeRanges = [
   { label: "1M", days: 30 },
   { label: "3M", days: 90 },
   { label: "1Y", days: 365 },
+  { label: "5Y", days: 1825 },
+  { label: "10Y", days: 3650 },
   { label: "ALL", days: 999 },
 ];
 
@@ -64,8 +66,8 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   const chartData = {
     labels: priceData.map((item) => {
       const date = new Date(item.date);
-      // For ALL timeframe (999 days), show years for multi-decade data
-      if (selectedRange === 999) {
+      // For multi-year timeframes (5Y, 10Y, ALL), show years for multi-year data
+      if (selectedRange >= 1825) { // 5Y or longer
         // Check if data spans multiple years
         const allDates = priceData.map(p => new Date(p.date));
         const minYear = Math.min(...allDates.map(d => d.getFullYear()));
