@@ -70,6 +70,7 @@ const timeRanges = [
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
   const [selectedRange, setSelectedRange] = useState(999);
   const [includeEstimates, setIncludeEstimates] = useState(false); // Default to only real recorded prices
+  const [forceLineMode, setForceLineMode] = useState(false); // User can override auto scatter mode
 
   // Use the new resampled endpoint
   const { data: resampledData, isLoading } = useQuery<ResampledSeries>({
@@ -143,6 +144,24 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   const gapThreshold = calculateGapThreshold(selectedRange);
   const timeSeriesData = addGapBreaks(baseTimeSeriesData, gapThreshold);
 
+  // Scatter mode detection for sparse data
+  const detectSparseData = (data: any[], timeframeMs: number): boolean => {
+    if (data.length <= 3) return true; // Very few points
+    
+    // Calculate point density (points per day)
+    const pointsPerDay = data.length / (timeframeMs / (24 * 60 * 60 * 1000));
+    
+    // Use scatter mode if density is very low
+    if (selectedRange >= 3650) return pointsPerDay < 0.05; // 10Y: < 1 point per 20 days
+    if (selectedRange >= 1825) return pointsPerDay < 0.1;  // 5Y: < 1 point per 10 days
+    if (selectedRange >= 365) return pointsPerDay < 0.2;   // 1Y: < 1 point per 5 days
+    if (selectedRange >= 90) return pointsPerDay < 0.5;    // 3M: < 1 point per 2 days
+    return pointsPerDay < 1.0; // Shorter ranges: < 1 point per day
+  };
+
+  const timeframeMs = selectedRange === 999 ? 365 * 10 * 24 * 60 * 60 * 1000 : selectedRange * 24 * 60 * 60 * 1000;
+  const shouldUseScatterMode = !forceLineMode && detectSparseData(baseTimeSeriesData, timeframeMs);
+
   const chartData = {
     datasets: [
       {
@@ -150,14 +169,15 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         data: timeSeriesData,
         borderColor: "hsl(217, 91%, 60%)",
         backgroundColor: "hsla(217, 91%, 60%, 0.1)",
-        borderWidth: 2,
-        fill: true,
+        borderWidth: shouldUseScatterMode ? 0 : 2,
+        fill: shouldUseScatterMode ? false : true,
         tension: 0.1,
-        pointRadius: 3,
-        pointHoverRadius: 6,
+        pointRadius: shouldUseScatterMode ? 6 : 3,
+        pointHoverRadius: shouldUseScatterMode ? 8 : 6,
         pointBackgroundColor: "hsl(217, 91%, 60%)",
         pointBorderColor: "hsl(210, 40%, 98%)",
         pointBorderWidth: 2,
+        showLine: !shouldUseScatterMode, // Hide line in scatter mode
         spanGaps: false, // Don't connect across null values (gaps)
       },
     ],
@@ -293,6 +313,21 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
                 data-testid="estimates-toggle"
               />
             </div>
+            
+            {/* Scatter vs Line Mode Toggle */}
+            {shouldUseScatterMode && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-muted-foreground cursor-pointer" htmlFor="line-mode-toggle">
+                  Connect Points
+                </label>
+                <Switch
+                  id="line-mode-toggle"
+                  checked={forceLineMode}
+                  onCheckedChange={setForceLineMode}
+                  data-testid="line-mode-toggle"
+                />
+              </div>
+            )}
           </div>
         </div>
         
