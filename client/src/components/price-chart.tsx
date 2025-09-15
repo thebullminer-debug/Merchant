@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -13,6 +13,7 @@ import {
   Filler,
   ChartOptions,
 } from "chart.js";
+import 'chartjs-adapter-date-fns';
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +41,7 @@ interface ResampledSeries {
 }
 
 ChartJS.register(
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -89,50 +90,17 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     enabled: !!collectibleId,
   });
 
+  // Convert data to time series format for TimeScale
+  const timeSeriesData = priceData.map((item) => ({
+    x: new Date(item.date),
+    y: Number(item.value)
+  }));
+
   const chartData = {
-    labels: priceData.map((item) => {
-      const date = new Date(item.date);
-      
-      // Adaptive labeling based on timeframe and data density
-      if (selectedRange >= 999) {
-        // ALL timeframe: show years for very long historical data
-        return date.getFullYear().toString();
-      } else if (selectedRange >= 3650) {
-        // 10Y timeframe: show year-month format
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short' 
-        });
-      } else if (selectedRange >= 1825) {
-        // 5Y timeframe: show year-month format
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'short' 
-        });
-      } else if (selectedRange >= 365) {
-        // 1Y timeframe: show month-year format
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          year: '2-digit' 
-        });
-      } else if (selectedRange >= 30) {
-        // 1M-3M timeframe: show month-day format
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      } else {
-        // Short timeframes (1D-7D): show month-day format
-        return date.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      }
-    }),
     datasets: [
       {
         label: "Median Price",
-        data: priceData.map((item) => Number(item.value)),
+        data: timeSeriesData,
         borderColor: "hsl(217, 91%, 60%)",
         backgroundColor: "hsla(217, 91%, 60%, 0.1)",
         borderWidth: 2,
@@ -171,6 +139,18 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     },
     scales: {
       x: {
+        type: 'time' as const,
+        time: {
+          unit: selectedRange >= 3650 ? 'year' : 
+                selectedRange >= 365 ? 'month' : 
+                selectedRange >= 30 ? 'week' : 'day',
+          displayFormats: {
+            day: 'MMM dd',
+            week: 'MMM dd', 
+            month: 'MMM yyyy',
+            year: 'yyyy'
+          }
+        },
         grid: {
           color: "hsl(214, 32%, 20%)",
         },
