@@ -90,11 +90,58 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     enabled: !!collectibleId,
   });
 
+  // Gap-aware rendering logic
+  const calculateGapThreshold = (selectedRange: number): number => {
+    // Define maximum acceptable gap as a fraction of the total timeframe
+    const timeframeDays = selectedRange === 999 ? 365 * 10 : selectedRange; // ALL = 10 years default
+    
+    if (timeframeDays >= 3650) return 365; // 10Y: 1 year gap
+    if (timeframeDays >= 1825) return 180; // 5Y: 6 months gap
+    if (timeframeDays >= 365) return 90;   // 1Y: 3 months gap
+    if (timeframeDays >= 90) return 30;    // 3M: 1 month gap
+    if (timeframeDays >= 30) return 7;     // 1M: 1 week gap
+    return 3; // Short timeframes: 3 days gap
+  };
+
+  const addGapBreaks = (data: { x: Date; y: number }[], gapThresholdDays: number) => {
+    if (data.length < 2) return data;
+    
+    const result: ({ x: Date; y: number } | { x: Date; y: null })[] = [];
+    const gapThresholdMs = gapThresholdDays * 24 * 60 * 60 * 1000;
+    
+    for (let i = 0; i < data.length; i++) {
+      result.push(data[i]);
+      
+      // Check gap to next point
+      if (i < data.length - 1) {
+        const currentTime = data[i].x.getTime();
+        const nextTime = data[i + 1].x.getTime();
+        const gap = nextTime - currentTime;
+        
+        // If gap exceeds threshold, add null point to break the line
+        if (gap > gapThresholdMs) {
+          result.push({
+            x: new Date(currentTime + gap / 2), // Midpoint of gap
+            y: null
+          });
+        }
+      }
+    }
+    
+    return result;
+  };
+
   // Convert data to time series format for TimeScale
-  const timeSeriesData = priceData.map((item) => ({
-    x: new Date(item.date),
-    y: Number(item.value)
-  }));
+  const baseTimeSeriesData = priceData
+    .map((item) => ({
+      x: new Date(item.date),
+      y: Number(item.value)
+    }))
+    .sort((a, b) => a.x.getTime() - b.x.getTime()); // Ensure ascending date order
+
+  // Apply gap-aware rendering
+  const gapThreshold = calculateGapThreshold(selectedRange);
+  const timeSeriesData = addGapBreaks(baseTimeSeriesData, gapThreshold);
 
   const chartData = {
     datasets: [
@@ -111,6 +158,7 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         pointBackgroundColor: "hsl(217, 91%, 60%)",
         pointBorderColor: "hsl(210, 40%, 98%)",
         pointBorderWidth: 2,
+        spanGaps: false, // Don't connect across null values (gaps)
       },
     ],
   };
@@ -132,6 +180,10 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         displayColors: false,
         callbacks: {
           label: (context) => {
+            // Handle null values from gap breaks
+            if (!Number.isFinite(context.parsed.y)) {
+              return 'Data gap - no price recorded';
+            }
             return `Price: $${context.parsed.y.toLocaleString()}`;
           },
         },
