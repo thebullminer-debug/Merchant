@@ -14,9 +14,30 @@ import {
   ChartOptions,
 } from "chart.js";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Info } from "lucide-react";
 import type { MedianPrice } from "@shared/schema";
+
+// New types for resampled data
+interface ResampledPoint {
+  date: string;
+  value: number;
+  quality: 'observed' | 'interpolated' | 'aggregated';
+}
+
+interface ResamplingMetadata {
+  observedCount: number;
+  interpolatedCount: number;
+  earliestObserved: string;
+  latestObserved: string;
+}
+
+interface ResampledSeries {
+  data: ResampledPoint[];
+  metadata: ResamplingMetadata;
+}
 
 ChartJS.register(
   CategoryScale,
@@ -47,16 +68,21 @@ const timeRanges = [
 
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
   const [selectedRange, setSelectedRange] = useState(999);
+  const [includeEstimates, setIncludeEstimates] = useState(true);
 
-  const { data: priceData = [], isLoading } = useQuery<MedianPrice[]>({
-    queryKey: ["/api/collectibles", collectibleId, "prices", selectedRange],
+  // Use the new resampled endpoint
+  const { data: resampledData, isLoading } = useQuery<ResampledSeries>({
+    queryKey: ["/api/collectibles", collectibleId, "prices/resampled", selectedRange, includeEstimates],
     queryFn: async () => {
-      const response = await fetch(`/api/collectibles/${collectibleId}/prices?days=${selectedRange}`);
-      if (!response.ok) throw new Error("Failed to fetch price data");
+      const response = await fetch(`/api/collectibles/${collectibleId}/prices/resampled?days=${selectedRange}&includeEstimates=${includeEstimates}`);
+      if (!response.ok) throw new Error("Failed to fetch resampled price data");
       return response.json();
     },
     enabled: !!collectibleId,
   });
+  
+  // Extract price data from resampled response
+  const priceData = resampledData?.data || [];
 
   const { data: currentPrice } = useQuery<{ price: number; change: number; activeListings: number }>({
     queryKey: ["/api/collectibles", collectibleId, "current-price"],
@@ -106,7 +132,7 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     datasets: [
       {
         label: "Median Price",
-        data: priceData.map((item) => Number(item.medianPrice)),
+        data: priceData.map((item) => Number(item.value)),
         borderColor: "hsl(217, 91%, 60%)",
         backgroundColor: "hsla(217, 91%, 60%, 0.1)",
         borderWidth: 2,
@@ -196,18 +222,46 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         )}
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex flex-wrap gap-2">
-          {timeRanges.map((range) => (
-            <Button
-              key={range.label}
-              variant={selectedRange === range.days ? "default" : "secondary"}
-              size="sm"
-              onClick={() => setSelectedRange(range.days)}
-              data-testid={`time-range-${range.label}`}
-            >
-              {range.label}
-            </Button>
-          ))}
+        {/* Data Quality and Controls */}
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            {timeRanges.map((range) => (
+              <Button
+                key={range.label}
+                variant={selectedRange === range.days ? "default" : "secondary"}
+                size="sm"
+                onClick={() => setSelectedRange(range.days)}
+                data-testid={`time-range-${range.label}`}
+              >
+                {range.label}
+              </Button>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Data Quality Badge */}
+            {resampledData?.metadata && (
+              <div className="flex items-center gap-2">
+                <Info size={16} className="text-muted-foreground" />
+                <Badge variant="outline">
+                  {resampledData.metadata.observedCount} observed, {resampledData.metadata.interpolatedCount} estimated
+                </Badge>
+              </div>
+            )}
+            
+            {/* Estimates Toggle */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground cursor-pointer" htmlFor="estimates-toggle">
+                Include Estimates
+              </label>
+              <Switch
+                id="estimates-toggle"
+                checked={includeEstimates}
+                onCheckedChange={setIncludeEstimates}
+                data-testid="estimates-toggle"
+              />
+            </div>
+          </div>
         </div>
         
         <div className="h-80">

@@ -5,9 +5,13 @@ import { insertCollectibleSchema, insertCategorySchema, insertMedianPriceSchema 
 import { marketplaceScraperService } from "./services/marketplace-scraper";
 import { addVinylRecords } from "./simple-vinyl-seed";
 import { dailyPriceService } from "./services/daily-price-service";
+import { ResamplingService } from "./services/resamplingService.js";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Initialize services
+  const resamplingService = new ResamplingService(storage);
   
   // Categories
   app.get("/api/categories", async (_req, res) => {
@@ -187,6 +191,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch price data" });
+    }
+  });
+
+  // New resampled prices endpoint for better chart UX
+  app.get("/api/collectibles/:id/prices/resampled", async (req, res) => {
+    try {
+      const { days, frequency, includeEstimates, maxPoints } = req.query;
+      
+      // Default values
+      const daysNum = days ? parseInt(days as string) : 30;
+      const targetFreq = (frequency as string) || 'day';
+      const estimates = includeEstimates === 'false' ? false : true; // Default true
+      const maxPts = maxPoints ? parseInt(maxPoints as string) : 720;
+
+      // Calculate date range
+      const endDate = new Date();
+      const startDate = new Date(endDate);
+      
+      if (daysNum === 999) {
+        startDate.setFullYear(1950); // ALL timeframe
+      } else if (daysNum >= 3650) {
+        startDate.setFullYear(endDate.getFullYear() - 10); // 10Y
+      } else if (daysNum >= 1825) {
+        startDate.setFullYear(endDate.getFullYear() - 5); // 5Y  
+      } else if (daysNum >= 90) {
+        const months = Math.floor(daysNum / 30.44);
+        startDate.setMonth(endDate.getMonth() - months);
+      } else {
+        startDate.setDate(endDate.getDate() - daysNum);
+      }
+
+      const resampledData = await resamplingService.getResampledSeries(
+        req.params.id,
+        startDate,
+        endDate,
+        targetFreq as any,
+        estimates,
+        maxPts
+      );
+
+      res.json(resampledData);
+    } catch (error) {
+      console.error('Failed to fetch resampled price data:', error);
+      res.status(500).json({ message: "Failed to fetch resampled price data" });
     }
   });
 
