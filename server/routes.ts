@@ -212,10 +212,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (daysNum === 999) {
         startDate.setFullYear(1950); // ALL timeframe
       } else if (daysNum >= 3650) {
-        // 10Y: Set to include 2010 data point to show meaningful historical range
-        startDate.setFullYear(2010);
-        startDate.setMonth(0); // January
-        startDate.setDate(1); // 1st
+        // 10Y: Exactly 10 years back from today
+        startDate.setFullYear(endDate.getFullYear() - 10);
+        startDate.setMonth(endDate.getMonth());
+        startDate.setDate(endDate.getDate());
       } else if (daysNum >= 1825) {
         // 5Y: Set to January 1st of target year to include all historical data
         startDate.setFullYear(endDate.getFullYear() - 5);
