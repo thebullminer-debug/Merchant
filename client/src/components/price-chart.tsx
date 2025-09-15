@@ -162,6 +162,12 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   const timeframeMs = selectedRange === 999 ? 365 * 10 * 24 * 60 * 60 * 1000 : selectedRange * 24 * 60 * 60 * 1000;
   const shouldUseScatterMode = !forceLineMode && detectSparseData(baseTimeSeriesData, timeframeMs);
 
+  // Create density rug plot - tick marks at the bottom for each observed data point
+  const rugPlotData = baseTimeSeriesData.map(point => ({
+    x: point.x,
+    y: 0 // Bottom of chart
+  }));
+
   const chartData = {
     datasets: [
       {
@@ -179,6 +185,23 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         pointBorderWidth: 2,
         showLine: !shouldUseScatterMode, // Hide line in scatter mode
         spanGaps: false, // Don't connect across null values (gaps)
+        yAxisID: 'y',
+      },
+      // Density rug plot - shows where actual data points exist
+      {
+        label: "Data Points",
+        data: rugPlotData,
+        borderColor: "hsl(217, 91%, 60%)",
+        backgroundColor: "hsl(217, 91%, 60%)",
+        borderWidth: 0,
+        pointRadius: 1.5,
+        pointHoverRadius: 3,
+        pointStyle: 'rect', // Small rectangles for rug plot
+        showLine: false,
+        fill: false,
+        yAxisID: 'rugAxis',
+        pointBackgroundColor: "hsl(217, 91%, 60%)",
+        pointBorderColor: "hsl(217, 91%, 60%)",
       },
     ],
   };
@@ -244,6 +267,14 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
           },
           callback: (value) => `$${Number(value).toLocaleString()}`,
         },
+      },
+      // Hidden axis for rug plot positioning
+      rugAxis: {
+        type: 'linear' as const,
+        position: 'left' as const,
+        display: false, // Hidden axis
+        min: 0,
+        max: 1,
       },
     },
     interaction: {
