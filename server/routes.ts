@@ -211,15 +211,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (daysNum === 999) {
         startDate.setFullYear(1950); // ALL timeframe
-      } else if (daysNum >= 3650) {
-        // 10Y: Exactly 10 years back from today
-        startDate.setFullYear(endDate.getFullYear() - 10);
-        startDate.setMonth(endDate.getMonth());
-        startDate.setDate(endDate.getDate());
       } else if (daysNum >= 1825) {
         // 5Y: Set to January 1st of target year to include all historical data
         startDate.setFullYear(endDate.getFullYear() - 5);
         startDate.setMonth(0); // January
+        startDate.setDate(1); // 1st
+      } else if (daysNum === 366 || req.query.range === 'ytd') {
+        // YTD: From January 1, 2025
+        startDate.setFullYear(2025);
+        startDate.setMonth(0); // January
+        startDate.setDate(1); // 1st
+      } else if (daysNum === 365) {
+        // 1Y: Exactly 1 year back from today
+        startDate.setFullYear(endDate.getFullYear() - 1);
+        startDate.setMonth(endDate.getMonth());
+        startDate.setDate(endDate.getDate());
+      } else if (daysNum === 180) {
+        // 6M: From March 1, 2025
+        startDate.setFullYear(2025);
+        startDate.setMonth(2); // March (0-indexed)
         startDate.setDate(1); // 1st
       } else if (daysNum >= 90) {
         const months = Math.floor(daysNum / 30.44);

@@ -12,6 +12,7 @@ import {
   Legend,
   Filler,
   ChartOptions,
+  Plugin,
 } from "chart.js";
 import 'chartjs-adapter-date-fns';
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,29 @@ interface ResampledSeries {
   metadata: ResamplingMetadata;
 }
 
+// Vertical crosshair plugin
+const crosshairPlugin: Plugin<'line'> = {
+  id: 'crosshair',
+  afterDraw: (chart) => {
+    if (chart.tooltip?.opacity && chart.tooltip.dataPoints?.length > 0) {
+      const ctx = chart.ctx;
+      const x = chart.tooltip.caretX;
+      const topY = chart.chartArea.top;
+      const bottomY = chart.chartArea.bottom;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, topY);
+      ctx.lineTo(x, bottomY);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'hsl(217, 91%, 60%)';
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+};
+
 ChartJS.register(
   TimeScale,
   LinearScale,
@@ -48,7 +72,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  crosshairPlugin
 );
 
 interface PriceChartProps {
@@ -61,22 +86,30 @@ const timeRanges = [
   { label: "7D", days: 7 },
   { label: "1M", days: 30 },
   { label: "3M", days: 90 },
+  { label: "6M", days: 180 },
+  { label: "YTD", days: 366 }, // Year to date - distinct from 1Y
   { label: "1Y", days: 365 },
   { label: "5Y", days: 1825 },
-  { label: "10Y", days: 3650 },
   { label: "ALL", days: 999 },
 ];
 
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
   const [selectedRange, setSelectedRange] = useState(999);
+  const [selectedRangeLabel, setSelectedRangeLabel] = useState('ALL');
   const [includeEstimates, setIncludeEstimates] = useState(false); // Default to only real recorded prices
   const [forceLineMode, setForceLineMode] = useState(false); // User can override auto scatter mode
 
   // Use the new resampled endpoint
   const { data: resampledData, isLoading } = useQuery<ResampledSeries>({
-    queryKey: ["/api/collectibles", collectibleId, "prices/resampled", selectedRange, includeEstimates],
+    queryKey: ["/api/collectibles", collectibleId, "prices/resampled", selectedRange, selectedRangeLabel, includeEstimates],
     queryFn: async () => {
-      const response = await fetch(`/api/collectibles/${collectibleId}/prices/resampled?days=${selectedRange}&includeEstimates=${includeEstimates}`);
+      const params = new URLSearchParams({
+        days: selectedRange.toString(),
+        includeEstimates: includeEstimates.toString(),
+        ...(selectedRangeLabel === 'YTD' && { range: 'ytd' })
+      });
+      
+      const response = await fetch(`/api/collectibles/${collectibleId}/prices/resampled?${params}`);
       if (!response.ok) throw new Error("Failed to fetch resampled price data");
       return response.json();
     },
@@ -96,12 +129,13 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     // Define maximum acceptable gap as a fraction of the total timeframe
     const timeframeDays = selectedRange === 999 ? 365 * 10 : selectedRange; // ALL = 10 years default
     
-    if (timeframeDays >= 3650) return 365; // 10Y: 1 year gap
     if (timeframeDays >= 1825) return 180; // 5Y: 6 months gap
-    if (timeframeDays >= 365) return 90;   // 1Y: 3 months gap
+    if (timeframeDays >= 365) return 90;   // 1Y, YTD: 3 months gap
+    if (timeframeDays >= 180) return 60;   // 6M: 2 months gap
     if (timeframeDays >= 90) return 30;    // 3M: 1 month gap
     if (timeframeDays >= 30) return 7;     // 1M: 1 week gap
-    return 3; // Short timeframes: 3 days gap
+    if (timeframeDays >= 7) return 2;      // 7D: 2 days gap
+    return 1; // 1D: 1 day gap
   };
 
   const addGapBreaks = (data: { x: Date; y: number }[], gapThresholdDays: number) => {
@@ -152,11 +186,13 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     const pointsPerDay = data.length / (timeframeMs / (24 * 60 * 60 * 1000));
     
     // Use scatter mode if density is very low
-    if (selectedRange >= 3650) return pointsPerDay < 0.05; // 10Y: < 1 point per 20 days
     if (selectedRange >= 1825) return pointsPerDay < 0.1;  // 5Y: < 1 point per 10 days
-    if (selectedRange >= 365) return pointsPerDay < 0.2;   // 1Y: < 1 point per 5 days
+    if (selectedRange >= 365) return pointsPerDay < 0.2;   // 1Y, YTD: < 1 point per 5 days
+    if (selectedRange >= 180) return pointsPerDay < 0.3;   // 6M: < 1 point per 3 days
     if (selectedRange >= 90) return pointsPerDay < 0.5;    // 3M: < 1 point per 2 days
-    return pointsPerDay < 1.0; // Shorter ranges: < 1 point per day
+    if (selectedRange >= 30) return pointsPerDay < 1.0;    // 1M: < 1 point per day
+    if (selectedRange >= 7) return pointsPerDay < 4.0;     // 7D: < 1 point per 6 hours
+    return pointsPerDay < 48.0; // 1D: < 1 point per 30 minutes
   };
 
   const timeframeMs = selectedRange === 999 ? 365 * 10 * 24 * 60 * 60 * 1000 : selectedRange * 24 * 60 * 60 * 1000;
@@ -236,12 +272,20 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
       x: {
         type: 'time' as const,
         time: {
-          unit: selectedRange >= 3650 ? 'year' : 
-                selectedRange >= 365 ? 'month' : 
-                selectedRange >= 30 ? 'week' : 'day',
+          unit: (() => {
+            if (selectedRange === 999) return 'year'; // ALL: 5 year intervals
+            if (selectedRange >= 1825) return 'year'; // 5Y: 1 year apart
+            if (selectedRange >= 365) return 'month'; // 1Y, YTD: monthly
+            if (selectedRange >= 180) return 'month'; // 6M: monthly
+            if (selectedRange >= 90) return 'day'; // 3M: 3 days apart
+            if (selectedRange >= 30) return 'day'; // 1M: daily
+            if (selectedRange >= 7) return 'hour'; // 7D: 6 hours apart
+            return 'minute'; // 1D: 30 minutes apart
+          })(),
           displayFormats: {
+            minute: 'HH:mm',
+            hour: 'MMM dd HH:mm',
             day: 'MMM dd',
-            week: 'MMM dd', 
             month: 'MMM yyyy',
             year: 'yyyy'
           }
@@ -254,6 +298,16 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
           font: {
             size: 12,
           },
+          stepSize: (() => {
+            if (selectedRange === 999) return 5; // ALL: 5 year intervals
+            if (selectedRange >= 1825) return 1; // 5Y: 1 year apart
+            if (selectedRange >= 365) return 1; // 1Y, YTD: 1 month apart
+            if (selectedRange >= 180) return 1; // 6M: 1 month apart
+            if (selectedRange >= 90) return 3; // 3M: 3 days apart
+            if (selectedRange >= 30) return 1; // 1M: 1 day apart
+            if (selectedRange >= 7) return 6; // 7D: 6 hours apart
+            return 30; // 1D: 30 minutes apart
+          })(),
         },
       },
       y: {
@@ -313,7 +367,10 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
                 key={range.label}
                 variant={selectedRange === range.days ? "default" : "secondary"}
                 size="sm"
-                onClick={() => setSelectedRange(range.days)}
+                onClick={() => {
+                  setSelectedRange(range.days);
+                  setSelectedRangeLabel(range.label);
+                }}
                 data-testid={`time-range-${range.label}`}
               >
                 {range.label}
