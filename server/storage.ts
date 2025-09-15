@@ -9,7 +9,7 @@ import {
   type Watchlist, type InsertWatchlist
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc, and, gte, lte, sql, count } from "drizzle-orm";
+import { eq, desc, asc, and, gte, lte, lt, sql, count } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -34,6 +34,7 @@ export interface IStorage {
   addPriceData(priceData: InsertPriceHistory): Promise<PriceHistory>;
   getMedianPrices(collectibleId: string, days?: number): Promise<MedianPrice[]>;
   getMedianPricesRange(collectibleId: string, startDate: Date, endDate: Date, granularity?: string, sourceId?: string): Promise<MedianPrice[]>;
+  getLastMedianBefore(collectibleId: string, date: Date): Promise<MedianPrice | null>;
   addMedianPrice(medianPrice: InsertMedianPrice): Promise<MedianPrice>;
   bulkInsertMedianPrices(prices: InsertMedianPrice[]): Promise<MedianPrice[]>;
   getCurrentPrice(collectibleId: string): Promise<{ price: number, change: number, activeListings: number } | null>;
@@ -238,6 +239,18 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(medianPrices)
       .where(and(...conditions))
       .orderBy(asc(medianPrices.date));
+  }
+
+  async getLastMedianBefore(collectibleId: string, date: Date): Promise<MedianPrice | null> {
+    const result = await db.select().from(medianPrices)
+      .where(and(
+        eq(medianPrices.collectibleId, collectibleId),
+        lt(medianPrices.date, date)
+      ))
+      .orderBy(desc(medianPrices.date))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : null;
   }
 
   async addMedianPrice(medianPrice: InsertMedianPrice): Promise<MedianPrice> {

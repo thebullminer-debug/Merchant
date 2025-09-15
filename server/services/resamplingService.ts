@@ -30,7 +30,7 @@ export class ResamplingService {
     includeEstimates: boolean = true,
     maxPoints: number = 720
   ): Promise<ResampledSeries> {
-    // Get observed data from both granularities
+    // Get observed data from both granularities within range
     const dailyData = await this.storage.getMedianPricesRange(
       collectibleId, 
       startDate, 
@@ -45,8 +45,18 @@ export class ResamplingService {
       'year'
     );
 
+    // Get anchor point (last price before start date) for interpolation
+    const anchorPoint = await this.storage.getLastMedianBefore(collectibleId, startDate);
+
     // Combine and sort all observed data points
-    const allObserved = [...dailyData, ...yearlyData]
+    const allObserved = [...dailyData, ...yearlyData];
+    
+    // Add anchor point if available and estimates are enabled
+    if (includeEstimates && anchorPoint) {
+      allObserved.push(anchorPoint);
+    }
+    
+    const allPoints = allObserved
       .map(point => ({
         date: new Date(point.date).getTime(),
         value: parseFloat(point.medianPrice),
@@ -54,7 +64,7 @@ export class ResamplingService {
       }))
       .sort((a, b) => a.date - b.date);
 
-    if (allObserved.length === 0) {
+    if (allPoints.length === 0) {
       return {
         data: [],
         metadata: {
@@ -67,7 +77,7 @@ export class ResamplingService {
     }
 
     // Convert observed points to resampled format
-    let resampledPoints: ResampledPoint[] = allObserved.map(point => ({
+    let resampledPoints: ResampledPoint[] = allPoints.map(point => ({
       date: new Date(point.date).toISOString(),
       value: point.value,
       quality: 'observed' as const

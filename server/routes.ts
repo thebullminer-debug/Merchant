@@ -212,9 +212,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (daysNum === 999) {
         startDate.setFullYear(1950); // ALL timeframe
       } else if (daysNum >= 3650) {
-        startDate.setFullYear(endDate.getFullYear() - 10); // 10Y
+        // 10Y: Set to January 1st of target year to include all historical data
+        startDate.setFullYear(endDate.getFullYear() - 10);
+        startDate.setMonth(0); // January
+        startDate.setDate(1); // 1st
       } else if (daysNum >= 1825) {
-        startDate.setFullYear(endDate.getFullYear() - 5); // 5Y  
+        // 5Y: Set to January 1st of target year to include all historical data
+        startDate.setFullYear(endDate.getFullYear() - 5);
+        startDate.setMonth(0); // January
+        startDate.setDate(1); // 1st
       } else if (daysNum >= 90) {
         const months = Math.floor(daysNum / 30.44);
         startDate.setMonth(endDate.getMonth() - months);
