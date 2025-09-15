@@ -68,7 +68,7 @@ const timeRanges = [
 
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
   const [selectedRange, setSelectedRange] = useState(999);
-  const [includeEstimates, setIncludeEstimates] = useState(true);
+  const [includeEstimates, setIncludeEstimates] = useState(false); // Default to only real recorded prices
 
   // Use the new resampled endpoint
   const { data: resampledData, isLoading } = useQuery<ResampledSeries>({
@@ -249,10 +249,10 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
               </div>
             )}
             
-            {/* Estimates Toggle */}
+            {/* Real Prices vs Estimates Toggle */}
             <div className="flex items-center gap-2">
               <label className="text-sm text-muted-foreground cursor-pointer" htmlFor="estimates-toggle">
-                Include Estimates
+                Show Interpolated Data
               </label>
               <Switch
                 id="estimates-toggle"

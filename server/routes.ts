@@ -202,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Default values
       const daysNum = days ? parseInt(days as string) : 30;
       const targetFreq = (frequency as string) || 'day';
-      const estimates = includeEstimates === 'false' ? false : true; // Default true
+      const estimates = includeEstimates === 'true' ? true : false; // Default false - only real prices
       const maxPts = maxPoints ? parseInt(maxPoints as string) : 720;
 
       // Calculate date range
@@ -212,8 +212,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (daysNum === 999) {
         startDate.setFullYear(1950); // ALL timeframe
       } else if (daysNum >= 3650) {
-        // 10Y: Set to January 1st of target year to include all historical data
-        startDate.setFullYear(endDate.getFullYear() - 10);
+        // 10Y: Set to include 2010 data point to show meaningful historical range
+        startDate.setFullYear(2010);
         startDate.setMonth(0); // January
         startDate.setDate(1); // 1st
       } else if (daysNum >= 1825) {
@@ -227,6 +227,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         startDate.setDate(endDate.getDate() - daysNum);
       }
+
+      // Normalize times to ensure boundary inclusiveness
+      startDate.setUTCHours(0, 0, 0, 0); // Start of day
+      endDate.setUTCHours(23, 59, 59, 999); // End of day
 
       const resampledData = await resamplingService.getResampledSeries(
         req.params.id,
