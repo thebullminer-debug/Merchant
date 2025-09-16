@@ -209,14 +209,14 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
       {
         label: "Median Price",
         data: timeSeriesData,
-        borderColor: "hsl(217, 91%, 60%)",
-        backgroundColor: "hsla(217, 91%, 60%, 0.1)",
+        borderColor: "hsl(45, 100%, 50%)", // Gold line
+        backgroundColor: "hsla(45, 100%, 50%, 0.1)", // Light gold fill
         borderWidth: shouldUseScatterMode ? 0 : 2,
         fill: shouldUseScatterMode ? false : true,
         tension: 0.1,
         pointRadius: shouldUseScatterMode ? 6 : 3,
         pointHoverRadius: shouldUseScatterMode ? 8 : 6,
-        pointBackgroundColor: "hsl(217, 91%, 60%)",
+        pointBackgroundColor: "hsl(45, 100%, 50%)", // Gold points
         pointBorderColor: "hsl(210, 40%, 98%)",
         pointBorderWidth: 2,
         showLine: !shouldUseScatterMode, // Hide line in scatter mode
