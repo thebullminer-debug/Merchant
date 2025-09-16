@@ -174,9 +174,8 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     }))
     .sort((a, b) => a.x.getTime() - b.x.getTime()); // Ensure ascending date order
 
-  // Apply gap-aware rendering
-  const gapThreshold = calculateGapThreshold(selectedRange);
-  const timeSeriesData = addGapBreaks(baseTimeSeriesData, gapThreshold);
+  // Use base data directly - connect all points with gold line
+  const timeSeriesData = baseTimeSeriesData;
 
   // Scatter mode detection for sparse data
   const detectSparseData = (data: any[], timeframeMs: number): boolean => {
@@ -195,8 +194,8 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     return pointsPerDay < 48.0; // 1D: < 1 point per 30 minutes
   };
 
-  const timeframeMs = selectedRange === 999 ? 365 * 10 * 24 * 60 * 60 * 1000 : selectedRange * 24 * 60 * 60 * 1000;
-  const shouldUseScatterMode = !forceLineMode && detectSparseData(baseTimeSeriesData, timeframeMs);
+  // Always use line mode to connect all price points
+  const shouldUseScatterMode = false;
 
   // Create density rug plot - tick marks at the bottom for each observed data point
   const rugPlotData = baseTimeSeriesData.map(point => ({
@@ -211,16 +210,16 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         data: timeSeriesData,
         borderColor: "hsl(45, 100%, 50%)", // Gold line
         backgroundColor: "hsla(45, 100%, 50%, 0.1)", // Light gold fill
-        borderWidth: shouldUseScatterMode ? 0 : 2,
-        fill: shouldUseScatterMode ? false : true,
+        borderWidth: 2,
+        fill: true,
         tension: 0.1,
-        pointRadius: shouldUseScatterMode ? 6 : 3,
-        pointHoverRadius: shouldUseScatterMode ? 8 : 6,
+        pointRadius: 3,
+        pointHoverRadius: 6,
         pointBackgroundColor: "hsl(45, 100%, 50%)", // Gold points
         pointBorderColor: "hsl(210, 40%, 98%)",
         pointBorderWidth: 2,
-        showLine: !shouldUseScatterMode, // Hide line in scatter mode
-        spanGaps: false, // Don't connect across null values (gaps)
+        showLine: true, // Always show connecting lines
+        spanGaps: true, // Connect all points with gold line
         yAxisID: 'y',
       },
       // Density rug plot - shows where actual data points exist
