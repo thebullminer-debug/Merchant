@@ -167,7 +167,7 @@ export function MarketsPage() {
               <span className="text-primary"> Markets</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {searchQuery ? 'Search results and market data' : 'Explore market trends and pricing data across all collectible categories'}
+              {searchQuery ? 'Search results and market data' : selectedCategory ? `Market trends and pricing data for ${categories.find(c => c.id === selectedCategory)?.name || 'selected category'}` : 'Choose a category to explore market trends and pricing data'}
             </p>
           </div>
 
@@ -360,8 +360,150 @@ export function MarketsPage() {
           </section>
         )}
 
-        {/* Main Markets Dashboard - Show when no search query and no category selected */}
+        {/* Browse by Category - Show when no search query and no category selected */}
         {showCategoryGrid && (
+          <section className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-2">Browse by Category</h2>
+              <p className="text-muted-foreground">Explore collectibles across different categories</p>
+            </div>
+            
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <Card key={index} className="bg-card border border-border">
+                    <CardContent className="p-6">
+                      <div className="loading-shimmer h-12 w-12 rounded-lg mb-4"></div>
+                      <div className="loading-shimmer h-6 w-3/4 rounded mb-2"></div>
+                      <div className="loading-shimmer h-4 w-1/2 rounded mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="loading-shimmer h-3 w-full rounded"></div>
+                        <div className="loading-shimmer h-3 w-2/3 rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {categories.map((category) => {
+                  const Icon = categoryIcons[category.name as keyof typeof categoryIcons] || Star;
+                  const categoryItems = marketData.filter(item => item.categoryId === category.id);
+                  const itemCount = categoryItems.length;
+                  const avgPrice = categoryItems.length > 0 
+                    ? categoryItems.reduce((sum, item) => sum + (item.currentPrice || 0), 0) / categoryItems.length
+                    : 0;
+                  const avgPriceChange = categoryItems.length > 0
+                    ? categoryItems.reduce((sum, item) => sum + (item.priceChange || 0), 0) / categoryItems.length
+                    : 0;
+                  const imageUrl = categoryImages[category.name as keyof typeof categoryImages];
+                  
+                  return (
+                    <Card
+                      key={category.id}
+                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group"
+                      onClick={() => handleCategorySelect(category.id)}
+                      data-testid={`category-card-${category.id}`}
+                    >
+                      <CardContent className="p-6">
+                        {/* Category Image */}
+                        <div className="relative mb-4">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={category.name}
+                              className="w-full h-32 object-cover rounded-lg group-hover:scale-105 transition-transform duration-200"
+                              onError={(e) => {
+                                const img = e.target as HTMLImageElement;
+                                img.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center group-hover:bg-muted/80 transition-colors">
+                              <Icon className="w-12 h-12 text-primary" />
+                            </div>
+                          )}
+                          <div className="absolute top-3 left-3">
+                            <div className="w-8 h-8 bg-background/90 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                              <Icon className="w-5 h-5 text-primary" />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Category Info */}
+                        <div className="space-y-3">
+                          <div>
+                            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                              {category.name}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {category.description || `Explore ${category.name.toLowerCase()} market data`}
+                            </p>
+                          </div>
+                          
+                          {/* Stats */}
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">Items:</span>
+                              <span className="font-medium text-foreground">{itemCount.toLocaleString()}</span>
+                            </div>
+                            
+                            {avgPrice > 0 && (
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Avg Price:</span>
+                                <span className="font-medium text-foreground">${avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                              </div>
+                            )}
+                            
+                            {avgPriceChange !== 0 && (
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Trend:</span>
+                                <span className={`font-medium flex items-center ${
+                                  avgPriceChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                                }`}>
+                                  {avgPriceChange >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                  <span className="ml-1">
+                                    {avgPriceChange >= 0 ? '+' : ''}{avgPriceChange.toFixed(1)}%
+                                  </span>
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Action Button */}
+                          <div className="pt-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategorySelect(category.id);
+                              }}
+                            >
+                              Explore {category.name}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+            
+            {!isLoading && categories.length === 0 && (
+              <div className="text-center py-12">
+                <Star className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No categories available</h3>
+                <p className="text-muted-foreground">Categories will appear here when data is available</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Category-specific view - Show when a category is selected but no search query */}
+        {showCategoryResults && (
           <section className="space-y-8">
             {/* Top Performers Section */}
             <div className="space-y-4">
@@ -375,7 +517,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => item.priceChange && item.priceChange > 0)
                       .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
                       .slice(0, 6)
@@ -407,7 +549,7 @@ export function MarketsPage() {
                         </div>
                       ))}
                   </div>
-                  {marketData.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
+                  {categoryResults.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No top performers available at this time
                     </div>
@@ -428,7 +570,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => item.priceChange && item.priceChange > 0)
                       .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
                       .slice(0, 6)
@@ -437,7 +579,7 @@ export function MarketsPage() {
                           key={`top-gainer-${item.id}-${index}`}
                           className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
                           onClick={() => handleItemClick(item)}
-                          data-testid={`top-gainer-${item.id}`}
+                          data-testid={`category-top-gainer-${item.id}`}
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
@@ -460,7 +602,7 @@ export function MarketsPage() {
                         </div>
                       ))}
                   </div>
-                  {marketData.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
+                  {categoryResults.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No gainers in this period
                     </div>
@@ -481,7 +623,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => item.priceChange && item.priceChange < 0)
                       .sort((a, b) => (a.priceChange || 0) - (b.priceChange || 0))
                       .slice(0, 6)
@@ -490,7 +632,7 @@ export function MarketsPage() {
                           key={`top-loser-${item.id}-${index}`}
                           className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-950/20 rounded-lg cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors"
                           onClick={() => handleItemClick(item)}
-                          data-testid={`top-loser-${item.id}`}
+                          data-testid={`category-top-loser-${item.id}`}
                         >
                           <div className="flex items-center space-x-3">
                             <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
@@ -513,7 +655,7 @@ export function MarketsPage() {
                         </div>
                       ))}
                   </div>
-                  {marketData.filter(item => item.priceChange && item.priceChange < 0).length === 0 && (
+                  {categoryResults.filter(item => item.priceChange && item.priceChange < 0).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No losers in this period
                     </div>
@@ -534,7 +676,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => {
                         const sportsCategory = categories.find(cat => cat.name.toLowerCase().includes('sports') || cat.name.toLowerCase().includes('trading'));
                         return sportsCategory && item.categoryId === sportsCategory.id;
@@ -545,7 +687,7 @@ export function MarketsPage() {
                           key={`sports-card-${item.id}-${index}`}
                           className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
                           onClick={() => handleItemClick(item)}
-                          data-testid={`sports-card-${item.id}`}
+                          data-testid={`category-sports-card-${item.id}`}
                         >
                           <CardContent className="p-4">
                             {item.imageUrl ? (
@@ -586,7 +728,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {marketData.filter(item => {
+                  {categoryResults.filter(item => {
                     const sportsCategory = categories.find(cat => cat.name.toLowerCase().includes('sports') || cat.name.toLowerCase().includes('trading'));
                     return sportsCategory && item.categoryId === sportsCategory.id;
                   }).length === 0 && (
@@ -610,7 +752,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon'))
                       .slice(0, 8)
                       .map((item, index) => (
@@ -618,7 +760,7 @@ export function MarketsPage() {
                           key={`pokemon-card-${item.id}-${index}`}
                           className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
                           onClick={() => handleItemClick(item)}
-                          data-testid={`pokemon-card-${item.id}`}
+                          data-testid={`category-pokemon-card-${item.id}`}
                         >
                           <CardContent className="p-4">
                             {item.imageUrl ? (
@@ -659,7 +801,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {marketData.filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon')).length === 0 && (
+                  {categoryResults.filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon')).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No Pokemon cards available at this time
                     </div>
@@ -680,7 +822,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {marketData
+                    {categoryResults
                       .filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg'))
                       .slice(0, 8)
                       .map((item, index) => (
@@ -688,7 +830,7 @@ export function MarketsPage() {
                           key={`magic-card-${item.id}-${index}`}
                           className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
                           onClick={() => handleItemClick(item)}
-                          data-testid={`magic-card-${item.id}`}
+                          data-testid={`category-magic-card-${item.id}`}
                         >
                           <CardContent className="p-4">
                             {item.imageUrl ? (
@@ -729,7 +871,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {marketData.filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg')).length === 0 && (
+                  {categoryResults.filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg')).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No Magic cards available at this time
                     </div>
@@ -808,334 +950,6 @@ export function MarketsPage() {
                   {categoryResults.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No top performers available at this time
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Top Gainers Section */}
-            <div className="space-y-4">
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                    Top Gainers
-                  </CardTitle>
-                  <p className="text-muted-foreground">Biggest price increases in 1M</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categoryResults
-                      .filter(item => item.priceChange && item.priceChange > 0)
-                      .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
-                      .slice(0, 6)
-                      .map((item, index) => (
-                        <div
-                          key={`category-top-gainer-${item.id}-${index}`}
-                          className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg cursor-pointer hover:bg-green-100 dark:hover:bg-green-950/30 transition-colors"
-                          onClick={() => handleItemClick(item)}
-                          data-testid={`category-top-gainer-${item.id}`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                              <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
-                              <p className="text-xs text-muted-foreground">{item.brand || 'N/A'}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-sm">
-                              ${item.currentPrice?.toLocaleString() || '0'}
-                            </p>
-                            <span className="text-green-600 dark:text-green-400 text-xs flex items-center">
-                              <TrendingUp size={10} className="mr-1" />
-                              +{item.priceChange?.toFixed(1) || '0'}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                  {categoryResults.filter(item => item.priceChange && item.priceChange > 0).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No gainers in this period
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Top Losers Section */}
-            <div className="space-y-4">
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <TrendingDown className="w-6 h-6 text-red-600" />
-                    Top Losers
-                  </CardTitle>
-                  <p className="text-muted-foreground">Biggest price decreases in 1M</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categoryResults
-                      .filter(item => item.priceChange && item.priceChange < 0)
-                      .sort((a, b) => (a.priceChange || 0) - (b.priceChange || 0))
-                      .slice(0, 6)
-                      .map((item, index) => (
-                        <div
-                          key={`category-top-loser-${item.id}-${index}`}
-                          className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-950/20 rounded-lg cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors"
-                          onClick={() => handleItemClick(item)}
-                          data-testid={`category-top-loser-${item.id}`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-                              <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-foreground text-sm">{item.name}</h4>
-                              <p className="text-xs text-muted-foreground">{item.brand || 'N/A'}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-sm">
-                              ${item.currentPrice?.toLocaleString() || '0'}
-                            </p>
-                            <span className="text-red-600 dark:text-red-400 text-xs flex items-center">
-                              <TrendingDown size={10} className="mr-1" />
-                              {item.priceChange?.toFixed(1) || '0'}%
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                  {categoryResults.filter(item => item.priceChange && item.priceChange < 0).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No losers in this period
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sports Cards Section */}
-            <div className="space-y-4">
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-primary" />
-                    Sports Cards
-                  </CardTitle>
-                  <p className="text-muted-foreground">Sports cards within this category</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => {
-                        const name = item.name.toLowerCase();
-                        const brand = (item.brand || '').toLowerCase();
-                        return name.includes('card') || name.includes('baseball') || name.includes('football') || 
-                               name.includes('basketball') || name.includes('hockey') || name.includes('sports') ||
-                               brand.includes('topps') || brand.includes('panini') || brand.includes('upper deck');
-                      })
-                      .slice(0, 8)
-                      .map((item, index) => (
-                        <Card
-                          key={`category-sports-card-${item.id}-${index}`}
-                          className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
-                          onClick={() => handleItemClick(item)}
-                          data-testid={`category-sports-card-${item.id}`}
-                        >
-                          <CardContent className="p-4">
-                            {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="rounded-lg w-full h-32 object-cover mb-3"
-                                onError={(e) => {
-                                  const img = e.target as HTMLImageElement;
-                                  img.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="bg-muted rounded-lg w-full h-32 flex items-center justify-center mb-3">
-                                <span className="text-muted-foreground text-sm">No image</span>
-                              </div>
-                            )}
-                            <h3 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                              {item.brand}
-                            </p>
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-foreground text-sm">
-                                ${item.currentPrice?.toLocaleString() || '0'}
-                              </span>
-                              {item.priceChange !== undefined && (
-                                <span className={`text-xs flex items-center ${item.priceChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                  {item.priceChange >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                                  <span className="ml-1">
-                                    {item.priceChange >= 0 ? '+' : ''}{item.priceChange.toFixed(1)}%
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                  {categoryResults.filter(item => {
-                    const name = item.name.toLowerCase();
-                    const brand = (item.brand || '').toLowerCase();
-                    return name.includes('card') || name.includes('baseball') || name.includes('football') || 
-                           name.includes('basketball') || name.includes('hockey') || name.includes('sports') ||
-                           brand.includes('topps') || brand.includes('panini') || brand.includes('upper deck');
-                  }).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No sports cards available in this category at this time
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Pokemon Cards Section */}
-            <div className="space-y-4">
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-primary" />
-                    Pokemon Cards
-                  </CardTitle>
-                  <p className="text-muted-foreground">Pokemon cards within this category</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon'))
-                      .slice(0, 8)
-                      .map((item, index) => (
-                        <Card
-                          key={`category-pokemon-card-${item.id}-${index}`}
-                          className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
-                          onClick={() => handleItemClick(item)}
-                          data-testid={`category-pokemon-card-${item.id}`}
-                        >
-                          <CardContent className="p-4">
-                            {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="rounded-lg w-full h-32 object-cover mb-3"
-                                onError={(e) => {
-                                  const img = e.target as HTMLImageElement;
-                                  img.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="bg-muted rounded-lg w-full h-32 flex items-center justify-center mb-3">
-                                <span className="text-muted-foreground text-sm">No image</span>
-                              </div>
-                            )}
-                            <h3 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                              {item.brand}
-                            </p>
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-foreground text-sm">
-                                ${item.currentPrice?.toLocaleString() || '0'}
-                              </span>
-                              {item.priceChange !== undefined && (
-                                <span className={`text-xs flex items-center ${item.priceChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                  {item.priceChange >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                                  <span className="ml-1">
-                                    {item.priceChange >= 0 ? '+' : ''}{item.priceChange.toFixed(1)}%
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                  {categoryResults.filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon')).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No Pokemon cards available in this category at this time
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Magic Cards Section */}
-            <div className="space-y-4">
-              <Card className="bg-card border border-border">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <BarChart3 className="w-6 h-6 text-primary" />
-                    Magic Cards
-                  </CardTitle>
-                  <p className="text-muted-foreground">Magic cards within this category</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg'))
-                      .slice(0, 8)
-                      .map((item, index) => (
-                        <Card
-                          key={`category-magic-card-${item.id}-${index}`}
-                          className="bg-card border border-border card-hover cursor-pointer transition-all duration-200"
-                          onClick={() => handleItemClick(item)}
-                          data-testid={`category-magic-card-${item.id}`}
-                        >
-                          <CardContent className="p-4">
-                            {item.imageUrl ? (
-                              <img
-                                src={item.imageUrl}
-                                alt={item.name}
-                                className="rounded-lg w-full h-32 object-cover mb-3"
-                                onError={(e) => {
-                                  const img = e.target as HTMLImageElement;
-                                  img.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div className="bg-muted rounded-lg w-full h-32 flex items-center justify-center mb-3">
-                                <span className="text-muted-foreground text-sm">No image</span>
-                              </div>
-                            )}
-                            <h3 className="font-semibold text-foreground mb-1 line-clamp-2 text-sm">
-                              {item.name}
-                            </h3>
-                            <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                              {item.brand}
-                            </p>
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-foreground text-sm">
-                                ${item.currentPrice?.toLocaleString() || '0'}
-                              </span>
-                              {item.priceChange !== undefined && (
-                                <span className={`text-xs flex items-center ${item.priceChange >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                  {item.priceChange >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                                  <span className="ml-1">
-                                    {item.priceChange >= 0 ? '+' : ''}{item.priceChange.toFixed(1)}%
-                                  </span>
-                                </span>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                  </div>
-                  {categoryResults.filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg')).length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm">
-                      No Magic cards available in this category at this time
                     </div>
                   )}
                 </CardContent>
