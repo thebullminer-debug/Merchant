@@ -156,6 +156,24 @@ export function MarketsPage() {
   const showSearchResults = searchQuery;
   const showCategoryGrid = !searchQuery && !selectedCategory;
 
+  // Filtering functions for card sections
+  const sportsCards = categoryResults.filter(item => {
+    const text = `${item.name} ${item.brand || ''} ${item.model || ''}`.toLowerCase();
+    return ['baseball', 'basketball', 'football', 'hockey', 'soccer', 'golf', 'tennis', 'boxing'].some(sport => 
+      text.includes(sport)
+    );
+  });
+
+  const pokemonCards = categoryResults.filter(item => {
+    const text = `${item.name} ${item.brand || ''} ${item.model || ''}`.toLowerCase();
+    return text.includes('pokemon');
+  });
+
+  const magicCards = categoryResults.filter(item => {
+    const text = `${item.name} ${item.brand || ''} ${item.model || ''}`.toLowerCase();
+    return text.includes('magic') || text.includes('mtg');
+  });
+
   return (
     <main className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -676,11 +694,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => {
-                        const sportsCategory = categories.find(cat => cat.name.toLowerCase().includes('sports') || cat.name.toLowerCase().includes('trading'));
-                        return sportsCategory && item.categoryId === sportsCategory.id;
-                      })
+                    {sportsCards
                       .slice(0, 8)
                       .map((item, index) => (
                         <Card
@@ -728,10 +742,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {categoryResults.filter(item => {
-                    const sportsCategory = categories.find(cat => cat.name.toLowerCase().includes('sports') || cat.name.toLowerCase().includes('trading'));
-                    return sportsCategory && item.categoryId === sportsCategory.id;
-                  }).length === 0 && (
+                  {sportsCards.length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No sports cards available at this time
                     </div>
@@ -752,8 +763,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon'))
+                    {pokemonCards
                       .slice(0, 8)
                       .map((item, index) => (
                         <Card
@@ -801,7 +811,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {categoryResults.filter(item => item.name.toLowerCase().includes('pokemon') || item.brand?.toLowerCase().includes('pokemon')).length === 0 && (
+                  {pokemonCards.length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No Pokemon cards available at this time
                     </div>
@@ -822,8 +832,7 @@ export function MarketsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {categoryResults
-                      .filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg'))
+                    {magicCards
                       .slice(0, 8)
                       .map((item, index) => (
                         <Card
@@ -871,7 +880,7 @@ export function MarketsPage() {
                         </Card>
                       ))}
                   </div>
-                  {categoryResults.filter(item => item.name.toLowerCase().includes('magic') || item.brand?.toLowerCase().includes('magic') || item.name.toLowerCase().includes('mtg')).length === 0 && (
+                  {magicCards.length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm">
                       No Magic cards available at this time
                     </div>
