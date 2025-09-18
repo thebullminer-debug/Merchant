@@ -127,7 +127,8 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = (categoryId: string) => {
-    setLocation(`/markets?category=${categoryId}`);
+    const targetUrl = `/markets?category=${categoryId}`;
+    setLocation(targetUrl);
   };
 
   const handleItemClick = (item: MarketData) => {
@@ -446,7 +447,7 @@ export function MarketsPage() {
                   return (
                     <Card
                       key={category.id}
-                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group"
+                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
                       onClick={() => handleCategorySelect(category.id)}
                       data-testid={`category-card-${category.id}`}
                     >
@@ -520,11 +521,7 @@ export function MarketsPage() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCategorySelect(category.id);
-                              }}
+                              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors pointer-events-none"
                             >
                               Explore {category.name}
                             </Button>
