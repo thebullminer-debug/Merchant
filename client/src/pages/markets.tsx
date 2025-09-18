@@ -43,17 +43,18 @@ const categoryIcons = {
 };
 
 export function MarketsPage() {
-  const [, setLocation] = useLocation();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [location, setLocation] = useLocation();
   const [sortBy, setSortBy] = useState("market-cap");
   const [priceRange, setPriceRange] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [timeframe, setTimeframe] = useState("1M");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
-  // Get search query from URL
+  // Get search query and category from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('q') || '';
+  const selectedCategory = urlParams.get('category') || null;
+
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
@@ -126,7 +127,7 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+    setLocation(`/markets?category=${categoryId}`);
   };
 
   const handleItemClick = (item: MarketData) => {
@@ -235,7 +236,13 @@ export function MarketsPage() {
                     {/* Category Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Category</label>
-                      <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}>
+                      <Select value={selectedCategory || "all"} onValueChange={(value) => {
+                        if (value === "all") {
+                          setLocation('/markets');
+                        } else {
+                          setLocation(`/markets?category=${value}`);
+                        }
+                      }}>
                         <SelectTrigger>
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
@@ -313,7 +320,7 @@ export function MarketsPage() {
               {selectedCategory && (
                 <Button 
                   variant="outline" 
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => setLocation('/markets')}
                   data-testid="button-clear-category"
                 >
                   Show All Categories
@@ -543,6 +550,27 @@ export function MarketsPage() {
         {/* Category-specific view - Show when a category is selected but no search query */}
         {showCategoryResults && (
           <section className="space-y-8">
+            {/* Show All Categories Button */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {currentCategoryName} Market
+                </h2>
+                <p className="text-muted-foreground">
+                  Live pricing and market data for {currentCategoryName?.toLowerCase()}
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setLocation('/markets')}
+                data-testid="button-show-all-categories"
+                className="flex items-center gap-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Show All Categories
+              </Button>
+            </div>
+
             {/* Inventory Section - All Products Grid */}
             <div className="space-y-4">
               <Card className="bg-card border border-border">
@@ -872,7 +900,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-clear-category"
               >
                 Show All Categories
