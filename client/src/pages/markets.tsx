@@ -111,6 +111,8 @@ export function MarketsPage() {
       return response.json();
     },
     enabled: !!currentSelectedCategory && !currentSearchQuery,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   const { data: marketData = [], isLoading } = useQuery<MarketData[]>({
@@ -126,9 +128,11 @@ export function MarketsPage() {
       return response.json();
     },
     enabled: !currentSearchQuery, // Only fetch market data when not searching
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  // Analytics data query for Trading Cards dashboard
+  // Analytics data query for Trading Cards dashboard  
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery<MarketAnalytics>({
     queryKey: ["/api/analytics/market", categoryId, timeframe],
     queryFn: async () => {
@@ -145,22 +149,15 @@ export function MarketsPage() {
       return response.json();
     },
     enabled: !!categoryId && !q,
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
-    console.log('🔥 CLICK DETECTED! Category:', categoryId);
-    console.log('🔥 Current URL before:', window.location.href);
-    // Clear search when selecting category
+    // Immediate navigation - no waiting for API calls
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    const newUrl = `/markets?${newParams.toString()}`;
-    console.log('🔥 About to navigate to:', newUrl);
-    setLocation(newUrl);
-    console.log('🔥 setLocation called');
-    // Check URL after a brief delay
-    setTimeout(() => {
-      console.log('🔥 URL after navigation:', window.location.href);
-    }, 50);
+    setLocation(`/markets?${newParams.toString()}`);
   }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
@@ -486,10 +483,7 @@ export function MarketsPage() {
                     <Card
                       key={category.id}
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
-                      onClick={(e) => {
-                        console.log('🎯 Card clicked! Event:', e.type);
-                        handleCategorySelect(category.id);
-                      }}
+                      onClick={() => handleCategorySelect(category.id)}
                       data-testid={`category-card-${category.id}`}
                     >
                       <CardContent className="p-6">
@@ -588,6 +582,14 @@ export function MarketsPage() {
         {/* Category-specific view - Show when a category is selected but no search query */}
         {showCategoryResults && (
           <section className="space-y-8">
+            {/* Instant loading feedback */}
+            {(categoryLoading || analyticsLoading) && (
+              <div className="fixed top-4 right-4 z-50">
+                <div className="bg-primary text-primary-foreground px-4 py-2 rounded-lg shadow-lg animate-pulse">
+                  Loading {categories.find(c => c.id === categoryId)?.name}...
+                </div>
+              </div>
+            )}
             {/* Show All Categories Button */}
             <div className="flex items-center justify-between">
               <div>
@@ -600,10 +602,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  console.log('🏠 Show All Categories clicked');
-                  setLocation('/markets');
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -941,10 +940,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  console.log('🏠 Clear Category clicked');
-                  setLocation('/markets');
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-clear-category"
               >
                 Show All Categories
