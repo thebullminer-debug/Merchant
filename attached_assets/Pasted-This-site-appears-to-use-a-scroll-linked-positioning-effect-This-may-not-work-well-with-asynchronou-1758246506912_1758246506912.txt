@@ -1,0 +1,112 @@
+This site appears to use a scroll-linked positioning effect. This may not work well with asynchronous panning; see https://firefox-source-docs.mozilla.org/performance/scroll-linked_effects.html for further details and to join the discussion on related tools and features! CollectaPrice
+[vite] hot updated: /src/pages/markets.tsx Console.js:61:15
+[vite] hot updated: /src/index.css?v=qWICERoZxghodjgQTUQAd Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. Black+Lotus+Alpha+Front+600.jpg
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. 4-charizard-holo.jpg
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+stallwart: failed ping 1 2 stallwart.build.js:1:886
+[vite] hot updated: /src/pages/markets.tsx Console.js:61:15
+[vite] hot updated: /src/index.css?v=qWICERoZxghodjgQTUQAd Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets Console.js:61:15
+URL params: <empty string> Console.js:61:15
+selectedCategory: null Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: null Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: true Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets Console.js:61:15
+URL params: <empty string> Console.js:61:15
+selectedCategory: null Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: null Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: true Console.js:61:15
+handleCategorySelect called with: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+Navigating to: /markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+setLocation called Console.js:61:15
+handleCategorySelect called with: a58d29ef-b680-44ff-a0a3-7712d77b56d5 Console.js:61:15
+Navigating to: /markets?category=a58d29ef-b680-44ff-a0a3-7712d77b56d5 Console.js:61:15
+setLocation called Console.js:61:15
+handleCategorySelect called with: a58d29ef-b680-44ff-a0a3-7712d77b56d5 Console.js:61:15
+Navigating to: /markets?category=a58d29ef-b680-44ff-a0a3-7712d77b56d5 Console.js:61:15
+setLocation called Console.js:61:15
+stallwart: failed ping 1 stallwart.build.js:1:886
+stallwart: failed ping 2 stallwart.build.js:1:886
+handleCategorySelect called with: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+Navigating to: /markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+setLocation called Console.js:61:15
+handleCategorySelect called with: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+Navigating to: /markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+setLocation called Console.js:61:15
+handleCategorySelect called with: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+Navigating to: /markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+setLocation called Console.js:61:15
+[vite] hot updated: /src/pages/markets.tsx Console.js:61:15
+[vite] hot updated: /src/index.css?v=qWICERoZxghodjgQTUQAd Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: true Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: false Console.js:61:15
+Current URL: https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/markets?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+URL params: ?category=2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+selectedCategory: 2f1300e0-886f-424a-8a44-0e67a0c1c20b Console.js:61:15
+searchQuery: <empty string> Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: true Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: false Console.js:61:15
+GET
+https://static.tcgplayer.com/product-images/pokemon-tcg/base-set/4-charizard-holo.jpg
+NS_BINDING_ABORTED
+
+GET
+https://images.squarespace-cdn.com/content/v1/5b1d3f46e17ba382ea27ba08/1589571442616-78DDQT7CE8R6QE3Y08R7/ke17ZwdGBToddI8pDm48kNvT88LknE-K9M4pGNO0Iqd7gQa3H78H3Y0txjaiv_0fDoOvxcdMmMKkDsyUqMSsMWxHk725yiiHCCLfrh8O1z5QPOohDIaIeljMHgDF5CVlOqpeNLcJ80NK65_fV7S1USOFn4xF8vTWDNAUBm5ducQhX-V3oVjSmr829Kmtlxw-zqeccbyRHXQN2bPaCA5lcA/Black+Lotus+Alpha+Front+600.jpg
+NS_BINDING_ABORTED
+
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. Black+Lotus+Alpha+Front+600.jpg
+A resource is blocked by OpaqueResponseBlocking, please check browser console for details. 4-charizard-holo.jpg
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+
+stallwart: failed ping 1 stallwart.build.js:1:886
+[vite] hot updated: /src/pages/markets.tsx Console.js:61:15
+[vite] hot updated: /src/index.css?v=qWICERoZxghodjgQTUQAd Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: null Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: true Console.js:61:15
+Display logic: Console.js:61:15
+showCategoryResults: null Console.js:61:15
+showSearchResults: <empty string> Console.js:61:15
+showCategoryGrid: true Console.js:61:15
+[vite] hot updated: /src/pages/markets.tsx Console.js:61:15
+[vite] hot updated: /src/index.css?v=qWICERoZxghodjgQTUQAd Console.js:61:15
+
+​
+
