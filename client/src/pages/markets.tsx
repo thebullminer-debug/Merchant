@@ -54,6 +54,12 @@ export function MarketsPage() {
   const urlParams = new URLSearchParams(window.location.search);
   const searchQuery = urlParams.get('q') || '';
   const selectedCategory = urlParams.get('category') || null;
+  
+  // Debug: Log the current URL state
+  console.log('Current URL:', window.location.href);
+  console.log('URL params:', window.location.search);
+  console.log('selectedCategory:', selectedCategory);
+  console.log('searchQuery:', searchQuery);
 
 
   const { data: categories = [] } = useQuery<Category[]>({
