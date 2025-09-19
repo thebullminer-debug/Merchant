@@ -61,6 +61,14 @@ export function MarketsPage() {
   const currentSearchQuery = searchQuery || urlSearchQuery;
   const currentSelectedCategory = selectedCategory || urlSelectedCategory;
   
+  // Clear state when URL changes to plain /markets (e.g., from header navigation)
+  useEffect(() => {
+    if (!urlSelectedCategory && !urlSearchQuery) {
+      setSelectedCategory(null);
+      setSearchQuery('');
+    }
+  }, [urlSelectedCategory, urlSearchQuery]);
+  
 
 
   const { data: categories = [] } = useQuery<Category[]>({
