@@ -150,10 +150,13 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
+    console.log('Category selected:', categoryId);
     // Clear search when selecting category
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    setLocation(`/markets?${newParams.toString()}`);
+    const newUrl = `/markets?${newParams.toString()}`;
+    console.log('Navigating to:', newUrl);
+    setLocation(newUrl);
   }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
@@ -182,6 +185,9 @@ export function MarketsPage() {
   const showCategoryResults = currentSelectedCategory && !currentSearchQuery;
   const showSearchResults = currentSearchQuery;
   const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
+  
+  console.log('Display states:', { showCategoryGrid, showCategoryResults, showSearchResults });
+  console.log('Current state:', { currentSearchQuery, currentSelectedCategory, categoriesLength: categories.length });
 
 
 
@@ -478,8 +484,14 @@ export function MarketsPage() {
                     <Card
                       key={category.id}
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
-                      onClick={() => handleCategorySelect(category.id)}
+                      onClick={(e) => {
+                        console.log('Card clicked!', category.id, e);
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCategorySelect(category.id);
+                      }}
                       data-testid={`category-card-${category.id}`}
+                      style={{ pointerEvents: 'auto', zIndex: 1 }}
                     >
                       <CardContent className="p-6">
                         {/* Category Image */}
