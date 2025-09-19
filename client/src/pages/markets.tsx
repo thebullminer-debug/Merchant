@@ -49,18 +49,18 @@ export function MarketsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [timeframe, setTimeframe] = useState("1M");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Get search query and category from URL params
+  // Also try to get from URL params as backup
   const urlParams = new URLSearchParams(window.location.search);
-  const searchQuery = urlParams.get('q') || '';
-  const selectedCategory = urlParams.get('category') || null;
+  const urlSearchQuery = urlParams.get('q') || '';
+  const urlSelectedCategory = urlParams.get('category') || null;
   
-  // Debug: Log the current URL state
-  console.log('Current URL:', window.location.href);
-  console.log('URL params:', window.location.search);
-  console.log('selectedCategory:', selectedCategory);
-  console.log('searchQuery:', searchQuery);
-  console.log('wouter location:', location);
+  // Use URL params if state is empty (for page refreshes)
+  const currentSearchQuery = searchQuery || urlSearchQuery;
+  const currentSelectedCategory = selectedCategory || urlSelectedCategory;
+  
 
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -69,13 +69,13 @@ export function MarketsPage() {
 
   // Query for search results when there's a search query
   const { data: searchResults = [], isLoading: searchLoading } = useQuery<MarketData[]>({
-    queryKey: ["/api/collectibles/search", searchQuery, selectedCategory, sortBy],
+    queryKey: ["/api/collectibles/search", currentSearchQuery, currentSelectedCategory, sortBy],
     queryFn: async () => {
-      if (!searchQuery.trim()) return [];
+      if (!currentSearchQuery.trim()) return [];
       
       const params = new URLSearchParams({
-        q: searchQuery,
-        ...(selectedCategory && { categoryId: selectedCategory }),
+        q: currentSearchQuery,
+        ...(currentSelectedCategory && { categoryId: currentSelectedCategory }),
         sort: sortBy,
       });
       
@@ -83,27 +83,27 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Search failed");
       return response.json();
     },
-    enabled: !!searchQuery,
+    enabled: !!currentSearchQuery,
   });
 
   // Query for category-based collectibles when no search query but category is selected
   const { data: categoryResults = [], isLoading: categoryLoading } = useQuery<MarketData[]>({
-    queryKey: ["/api/collectibles", selectedCategory],
+    queryKey: ["/api/collectibles", currentSelectedCategory],
     queryFn: async () => {
-      if (!selectedCategory) return [];
+      if (!currentSelectedCategory) return [];
       
-      const response = await fetch(`/api/collectibles?categoryId=${selectedCategory}`);
+      const response = await fetch(`/api/collectibles?categoryId=${currentSelectedCategory}`);
       if (!response.ok) throw new Error("Failed to fetch category items");
       return response.json();
     },
-    enabled: !!selectedCategory && !searchQuery,
+    enabled: !!currentSelectedCategory && !currentSearchQuery,
   });
 
   const { data: marketData = [], isLoading } = useQuery<MarketData[]>({
-    queryKey: ["/api/markets", selectedCategory, sortBy],
+    queryKey: ["/api/markets", currentSelectedCategory, sortBy],
     queryFn: async () => {
       const params = new URLSearchParams({
-        ...(selectedCategory && { category: selectedCategory }),
+        ...(currentSelectedCategory && { category: currentSelectedCategory }),
         sort: sortBy,
       });
       
@@ -111,7 +111,7 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Failed to fetch market data");
       return response.json();
     },
-    enabled: !searchQuery, // Only fetch market data when not searching
+    enabled: !currentSearchQuery, // Only fetch market data when not searching
   });
 
   // Analytics data query for Trading Cards dashboard
@@ -130,10 +130,12 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Failed to fetch analytics data");
       return response.json();
     },
-    enabled: !!selectedCategory && !searchQuery,
+    enabled: !!currentSelectedCategory && !currentSearchQuery,
   });
 
   const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setSearchQuery('');
     setLocation(`/markets?category=${categoryId}`);
   };
 
@@ -142,10 +144,10 @@ export function MarketsPage() {
   };
 
   // Determine which results to show and filter them
-  const currentResults = searchQuery ? searchResults : 
-                        selectedCategory ? categoryResults : marketData;
-  const currentLoading = searchQuery ? searchLoading : 
-                        selectedCategory ? categoryLoading : isLoading;
+  const currentResults = currentSearchQuery ? searchResults : 
+                        currentSelectedCategory ? categoryResults : marketData;
+  const currentLoading = currentSearchQuery ? searchLoading : 
+                        currentSelectedCategory ? categoryLoading : isLoading;
   
   const filteredResults = currentResults.filter(item => {
     if (priceRange === "all") return true;
@@ -160,9 +162,9 @@ export function MarketsPage() {
     }
   });
 
-  const showCategoryResults = selectedCategory && !searchQuery;
-  const showSearchResults = searchQuery;
-  const showCategoryGrid = !searchQuery && !selectedCategory;
+  const showCategoryResults = currentSelectedCategory && !currentSearchQuery;
+  const showSearchResults = currentSearchQuery;
+  const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
 
   // Category-specific section mapping
   const sportsKeywords = ['baseball', 'basketball', 'football', 'hockey', 'soccer', 'golf', 'tennis', 'boxing'];
@@ -194,7 +196,7 @@ export function MarketsPage() {
   };
 
   // Get current category name
-  const currentCategoryName = categories.find(cat => cat.id === selectedCategory)?.name;
+  const currentCategoryName = categories.find(cat => cat.id === currentSelectedCategory)?.name;
   const currentCategorySections = currentCategoryName ? CATEGORY_SECTIONS[currentCategoryName] || [] : [];
 
   // Legacy filtering functions for Trading Cards (backward compatibility)
@@ -213,14 +215,8 @@ export function MarketsPage() {
               Collectibles
               <span className="text-primary"> Markets</span>
             </h1>
-            {/* DEBUG: Show current state visually */}
-            <div className="bg-yellow-100 dark:bg-yellow-900 p-2 rounded text-sm">
-              <strong>DEBUG:</strong> URL: {window.location.search || '(no params)'} | 
-              Category: {selectedCategory || 'none'} | 
-              Location: {location}
-            </div>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              {searchQuery ? 'Search results and market data' : selectedCategory ? `Market trends and pricing data for ${categories.find(c => c.id === selectedCategory)?.name || 'selected category'}` : 'Choose a category to explore market trends and pricing data'}
+              {currentSearchQuery ? 'Search results and market data' : currentSelectedCategory ? `Market trends and pricing data for ${categories.find(c => c.id === currentSelectedCategory)?.name || 'selected category'}` : 'Choose a category to explore market trends and pricing data'}
             </p>
           </div>
 
@@ -331,10 +327,14 @@ export function MarketsPage() {
                   }
                 </p>
               </div>
-              {selectedCategory && (
+              {currentSelectedCategory && (
                 <Button 
                   variant="outline" 
-                  onClick={() => setLocation('/markets')}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSearchQuery('');
+                    setLocation('/markets');
+                  }}
                   data-testid="button-clear-category"
                 >
                   Show All Categories
