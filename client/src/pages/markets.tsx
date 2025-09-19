@@ -127,10 +127,7 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = (categoryId: string) => {
-    console.log("handleCategorySelect called with:", categoryId);
-    console.log("Current location:", window.location.href);
     setLocation(`/markets?category=${categoryId}`);
-    console.log("setLocation called");
   };
 
   const handleItemClick = (item: MarketData) => {
