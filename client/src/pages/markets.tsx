@@ -580,7 +580,11 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setSearchQuery('');
+                  setLocation('/markets');
+                }}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -918,7 +922,11 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  setSelectedCategory(null);
+                  setSearchQuery('');
+                  setLocation('/markets');
+                }}
                 data-testid="button-clear-category"
               >
                 Show All Categories
