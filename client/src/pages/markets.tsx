@@ -151,13 +151,19 @@ export function MarketsPage() {
 
   const handleCategorySelect = useCallback((categoryId: string) => {
     console.log('Category selected:', categoryId);
+    console.log('Current location before:', location);
     // Clear search when selecting category
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
     const newUrl = `/markets?${newParams.toString()}`;
     console.log('Navigating to:', newUrl);
     setLocation(newUrl);
-  }, [setLocation]);
+    console.log('setLocation called');
+    // Add a timeout to check if the location changed
+    setTimeout(() => {
+      console.log('Location after timeout:', window.location.href);
+    }, 100);
+  }, [setLocation, location]);
 
   const handleItemClick = (item: MarketData) => {
     setLocation(`/item/${item.id}`);
