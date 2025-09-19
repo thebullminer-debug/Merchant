@@ -50,13 +50,11 @@ export function MarketsPage() {
   const [timeframe, setTimeframe] = useState("1M");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
-  // Parse query params from wouter location
-  const [pathname, search] = useMemo(() => {
-    const i = location.indexOf('?');
-    return i === -1 ? [location, ''] : [location.slice(0, i), location.slice(i)];
-  }, [location]);
+  // Parse query params directly from window.location since wouter location doesn't update properly
+  const params = useMemo(() => {
+    return new URLSearchParams(window.location.search);
+  }, [location]); // Still depend on location for reactivity
   
-  const params = useMemo(() => new URLSearchParams(search), [search]);
   const categoryId = params.get('category');
   const q = params.get('q') ?? '';
   
@@ -66,16 +64,16 @@ export function MarketsPage() {
   
   // Helper function to update URL parameters
   const updateParam = useCallback((key: string, value: string | null) => {
-    const newParams = new URLSearchParams(search);
+    const newParams = new URLSearchParams(window.location.search);
     if (value === null) {
       newParams.delete(key);
     } else {
       newParams.set(key, value);
     }
     const newSearch = newParams.toString();
-    const newLocation = newSearch ? `${pathname}?${newSearch}` : pathname;
+    const newLocation = newSearch ? `/markets?${newSearch}` : '/markets';
     setLocation(newLocation);
-  }, [pathname, search, setLocation]);
+  }, [setLocation]);
   
 
 
@@ -150,20 +148,11 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
-    console.log('Category selected:', categoryId);
-    console.log('Current location before:', location);
     // Clear search when selecting category
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    const newUrl = `/markets?${newParams.toString()}`;
-    console.log('Navigating to:', newUrl);
-    setLocation(newUrl);
-    console.log('setLocation called');
-    // Add a timeout to check if the location changed
-    setTimeout(() => {
-      console.log('Location after timeout:', window.location.href);
-    }, 100);
-  }, [setLocation, location]);
+    setLocation(`/markets?${newParams.toString()}`);
+  }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
     setLocation(`/item/${item.id}`);
@@ -191,9 +180,6 @@ export function MarketsPage() {
   const showCategoryResults = currentSelectedCategory && !currentSearchQuery;
   const showSearchResults = currentSearchQuery;
   const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
-  
-  console.log('Display states:', { showCategoryGrid, showCategoryResults, showSearchResults });
-  console.log('Current state:', { currentSearchQuery, currentSelectedCategory, categoriesLength: categories.length });
 
 
 
@@ -490,14 +476,8 @@ export function MarketsPage() {
                     <Card
                       key={category.id}
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
-                      onClick={(e) => {
-                        console.log('Card clicked!', category.id, e);
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleCategorySelect(category.id);
-                      }}
+                      onClick={() => handleCategorySelect(category.id)}
                       data-testid={`category-card-${category.id}`}
-                      style={{ pointerEvents: 'auto', zIndex: 1 }}
                     >
                       <CardContent className="p-6">
                         {/* Category Image */}
