@@ -60,6 +60,7 @@ export function MarketsPage() {
   console.log('URL params:', window.location.search);
   console.log('selectedCategory:', selectedCategory);
   console.log('searchQuery:', searchQuery);
+  console.log('wouter location:', location);
 
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -212,6 +213,12 @@ export function MarketsPage() {
               Collectibles
               <span className="text-primary"> Markets</span>
             </h1>
+            {/* DEBUG: Show current state visually */}
+            <div className="bg-yellow-100 dark:bg-yellow-900 p-2 rounded text-sm">
+              <strong>DEBUG:</strong> URL: {window.location.search || '(no params)'} | 
+              Category: {selectedCategory || 'none'} | 
+              Location: {location}
+            </div>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               {searchQuery ? 'Search results and market data' : selectedCategory ? `Market trends and pricing data for ${categories.find(c => c.id === selectedCategory)?.name || 'selected category'}` : 'Choose a category to explore market trends and pricing data'}
             </p>
