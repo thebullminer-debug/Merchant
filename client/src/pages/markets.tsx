@@ -148,10 +148,19 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
+    console.log('🔥 CLICK DETECTED! Category:', categoryId);
+    console.log('🔥 Current URL before:', window.location.href);
     // Clear search when selecting category
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    setLocation(`/markets?${newParams.toString()}`);
+    const newUrl = `/markets?${newParams.toString()}`;
+    console.log('🔥 About to navigate to:', newUrl);
+    setLocation(newUrl);
+    console.log('🔥 setLocation called');
+    // Check URL after a brief delay
+    setTimeout(() => {
+      console.log('🔥 URL after navigation:', window.location.href);
+    }, 50);
   }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
@@ -477,7 +486,10 @@ export function MarketsPage() {
                     <Card
                       key={category.id}
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
-                      onClick={() => handleCategorySelect(category.id)}
+                      onClick={(e) => {
+                        console.log('🎯 Card clicked! Event:', e.type);
+                        handleCategorySelect(category.id);
+                      }}
                       data-testid={`category-card-${category.id}`}
                     >
                       <CardContent className="p-6">
@@ -588,7 +600,10 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  console.log('🏠 Show All Categories clicked');
+                  setLocation('/markets');
+                }}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -926,7 +941,10 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  console.log('🏠 Clear Category clicked');
+                  setLocation('/markets');
+                }}
                 data-testid="button-clear-category"
               >
                 Show All Categories
