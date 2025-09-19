@@ -58,8 +58,9 @@ export function MarketsPage() {
   const urlSelectedCategory = urlParams.get('category') || null;
   
   // Use URL params if state is empty (for page refreshes)
-  const currentSearchQuery = searchQuery || urlSearchQuery;
-  const currentSelectedCategory = selectedCategory || urlSelectedCategory;
+  // But if we're on plain /markets (no URL params), ignore local state
+  const currentSearchQuery = (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) ? '' : (searchQuery || urlSearchQuery);
+  const currentSelectedCategory = (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) ? null : (selectedCategory || urlSelectedCategory);
   
   // Clear state when URL changes to plain /markets (e.g., from header navigation)
   useEffect(() => {
