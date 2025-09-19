@@ -63,11 +63,12 @@ export function MarketsPage() {
   
   // Clear state when URL changes to plain /markets (e.g., from header navigation)
   useEffect(() => {
-    if (!urlSelectedCategory && !urlSearchQuery) {
+    // If we're on /markets with no URL parameters, clear the state
+    if (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) {
       setSelectedCategory(null);
       setSearchQuery('');
     }
-  }, [urlSelectedCategory, urlSearchQuery]);
+  }, [location, urlSelectedCategory, urlSearchQuery]);
   
 
 
