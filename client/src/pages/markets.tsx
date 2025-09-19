@@ -127,8 +127,11 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = (categoryId: string) => {
+    console.log('handleCategorySelect called with:', categoryId);
     const targetUrl = `/markets?category=${categoryId}`;
+    console.log('Navigating to:', targetUrl);
     setLocation(targetUrl);
+    console.log('setLocation called');
   };
 
   const handleItemClick = (item: MarketData) => {
