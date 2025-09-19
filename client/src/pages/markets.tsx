@@ -55,9 +55,12 @@ export function MarketsPage() {
   const categoryId = params.get('category');
   const q = params.get('q') ?? '';
   
+  // If we're on exactly /markets with no params, ensure categoryId is null
+  const cleanCategoryId = (location === '/markets' && !window.location.search) ? null : categoryId;
+  
   // Derived state for display
   const currentSearchQuery = q;
-  const currentSelectedCategory = categoryId;
+  const currentSelectedCategory = cleanCategoryId;
   
 
 
@@ -114,12 +117,12 @@ export function MarketsPage() {
 
   // Analytics data query for Trading Cards dashboard
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery<MarketAnalytics>({
-    queryKey: ["/api/analytics/market", categoryId, timeframe],
+    queryKey: ["/api/analytics/market", cleanCategoryId, timeframe],
     queryFn: async () => {
-      if (!categoryId) throw new Error("Category ID required");
+      if (!cleanCategoryId) throw new Error("Category ID required");
       
       const params = new URLSearchParams({
-        categoryId: categoryId,
+        categoryId: cleanCategoryId,
         period: timeframe,
         limit: "10"
       });
@@ -128,7 +131,7 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Failed to fetch analytics data");
       return response.json();
     },
-    enabled: !!categoryId && !q,
+    enabled: !!cleanCategoryId && !q,
   });
 
   const handleCategorySelect = (categoryId: string) => {
@@ -161,6 +164,7 @@ export function MarketsPage() {
   const showCategoryResults = currentSelectedCategory && !currentSearchQuery;
   const showSearchResults = currentSearchQuery;
   const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
+
 
   // Category-specific section mapping
   const sportsKeywords = ['baseball', 'basketball', 'football', 'hockey', 'soccer', 'golf', 'tennis', 'boxing'];
@@ -326,7 +330,10 @@ export function MarketsPage() {
               {currentSelectedCategory && (
                 <Button 
                   variant="outline" 
-                  onClick={() => setLocation('/markets')}
+                  onClick={() => {
+                    // Force complete URL reset
+                    window.location.href = '/markets';
+                  }}
                   data-testid="button-clear-category"
                 >
                   Show All Categories
