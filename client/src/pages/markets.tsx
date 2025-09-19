@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,27 +49,15 @@ export function MarketsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [timeframe, setTimeframe] = useState("1M");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Also try to get from URL params as backup
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlSearchQuery = urlParams.get('q') || '';
-  const urlSelectedCategory = urlParams.get('category') || null;
+  // Use URL as single source of truth
+  const params = useMemo(() => new URLSearchParams(window.location.search), [location]);
+  const categoryId = params.get('category');
+  const q = params.get('q') ?? '';
   
-  // Use URL params if state is empty (for page refreshes)
-  // But if we're on plain /markets (no URL params), ignore local state
-  const currentSearchQuery = (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) ? '' : (searchQuery || urlSearchQuery);
-  const currentSelectedCategory = (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) ? null : (selectedCategory || urlSelectedCategory);
-  
-  // Clear state when URL changes to plain /markets (e.g., from header navigation)
-  useEffect(() => {
-    // If we're on /markets with no URL parameters, clear the state
-    if (location === '/markets' && !urlSelectedCategory && !urlSearchQuery) {
-      setSelectedCategory(null);
-      setSearchQuery('');
-    }
-  }, [location, urlSelectedCategory, urlSearchQuery]);
+  // Derived state for display
+  const currentSearchQuery = q;
+  const currentSelectedCategory = categoryId;
   
 
 
@@ -126,12 +114,12 @@ export function MarketsPage() {
 
   // Analytics data query for Trading Cards dashboard
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery<MarketAnalytics>({
-    queryKey: ["/api/analytics/market", selectedCategory, timeframe],
+    queryKey: ["/api/analytics/market", categoryId, timeframe],
     queryFn: async () => {
-      if (!selectedCategory) throw new Error("Category ID required");
+      if (!categoryId) throw new Error("Category ID required");
       
       const params = new URLSearchParams({
-        categoryId: selectedCategory,
+        categoryId: categoryId,
         period: timeframe,
         limit: "10"
       });
@@ -140,12 +128,10 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Failed to fetch analytics data");
       return response.json();
     },
-    enabled: !!currentSelectedCategory && !currentSearchQuery,
+    enabled: !!categoryId && !q,
   });
 
   const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    setSearchQuery('');
     setLocation(`/markets?category=${categoryId}`);
   };
 
@@ -256,7 +242,7 @@ export function MarketsPage() {
                     {/* Category Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Category</label>
-                      <Select value={selectedCategory || "all"} onValueChange={(value) => {
+                      <Select value={categoryId || "all"} onValueChange={(value) => {
                         if (value === "all") {
                           setLocation('/markets');
                         } else {
@@ -322,17 +308,17 @@ export function MarketsPage() {
         </section>
 
         {/* Search Results */}
-        {searchQuery && (
+        {q && (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">
-                  {searchQuery ? "Search Results" : selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name || 'Category'} Market` : "Market Data"}
+                  {q ? "Search Results" : categoryId ? `${categories.find(c => c.id === categoryId)?.name || 'Category'} Market` : "Market Data"}
                 </h2>
                 <p className="text-muted-foreground">
                   {currentLoading ? "Loading..." : 
-                    searchQuery ? `${filteredResults.length} results for "${searchQuery}"` :
-                    selectedCategory ? `Live pricing and market data for ${categories.find(c => c.id === selectedCategory)?.name?.toLowerCase()}` :
+                    q ? `${filteredResults.length} results for "${q}"` :
+                    categoryId ? `Live pricing and market data for ${categories.find(c => c.id === categoryId)?.name?.toLowerCase()}` :
                     `${filteredResults.length} items`
                   }
                 </p>
@@ -340,11 +326,7 @@ export function MarketsPage() {
               {currentSelectedCategory && (
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSearchQuery('');
-                    setLocation('/markets');
-                  }}
+                  onClick={() => setLocation('/markets')}
                   data-testid="button-clear-category"
                 >
                   Show All Categories
@@ -582,11 +564,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setSearchQuery('');
-                  setLocation('/markets');
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -911,24 +889,20 @@ export function MarketsPage() {
         )}
 
         {/* Category Markets Dashboard - Shows when a category is selected but not searching */}
-        {selectedCategory && !searchQuery && (
+        {categoryId && !q && (
           <section className="space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">
-                  {categories.find(c => c.id === selectedCategory)?.name} Markets
+                  {categories.find(c => c.id === categoryId)?.name} Markets
                 </h2>
                 <p className="text-muted-foreground">
-                  Market trends and pricing data for {categories.find(c => c.id === selectedCategory)?.name?.toLowerCase()}
+                  Market trends and pricing data for {categories.find(c => c.id === categoryId)?.name?.toLowerCase()}
                 </p>
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setSelectedCategory(null);
-                  setSearchQuery('');
-                  setLocation('/markets');
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-clear-category"
               >
                 Show All Categories
