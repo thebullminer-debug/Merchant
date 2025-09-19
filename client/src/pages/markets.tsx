@@ -194,6 +194,7 @@ export function MarketsPage() {
   const sportsCards = filterItemsByKeywords(categoryResults, sportsKeywords);
   const pokemonCards = filterItemsByKeywords(categoryResults, ["pokemon"]);
   const magicCards = filterItemsByKeywords(categoryResults, ["magic", "mtg"]);
+  
 
   return (
     <main className="min-h-screen bg-background">

@@ -1,0 +1,18 @@
+Feature Policy: Skipping unsupported feature name “clipboard-read”. workspace_iframe.html:151:20
+Feature Policy: Skipping unsupported feature name “clipboard-write”. workspace_iframe.html:151:20
+The script from “https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/__replco/static/devtools/injected.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type.
+20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev
+The script from “https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js” was loaded even though its MIME type (“text/plain”) is not a valid JavaScript MIME type.
+20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev
+Layout was forced before the page was fully loaded. If stylesheets are not yet loaded this may cause a flash of unstyled content. util.js:114:5
+Partitioned cookie or storage access was provided to “https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/” because it is loaded in the third-party context and dynamic state partitioning is enabled.
+safeStorage.js:7:13
+Partitioned cookie or storage access was provided to “https://20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Ar8d%3A” because it is loaded in the third-party context and dynamic state partitioning is enabled.
+
+[vite] connecting... Console.js:61:15
+[vite] connected. Console.js:61:15
+Found a sectioned h1 element with no specified font-size or margin properties. More information: https://developer.mozilla.org/docs/Web/HTML/Element/Heading_Elements#specifying_a_uniform_font_size_for_h1 $offset.js:5:25
+Cookie warnings 2
+Loading failed for the <script> with source “https://replit.com/public/js/beacon.js”. 20ac5cca-47f1-43e4-bb4c-b56757ea3717-00-3uteywdhdyfe7.riker.replit.dev:1:1
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://events.launchdarkly.com/events/bulk/62b35a865152ab14c5942820. (Reason: CORS request did not succeed). Status code: (null).
+2
