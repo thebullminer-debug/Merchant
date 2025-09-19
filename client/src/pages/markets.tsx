@@ -148,13 +148,10 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
-    console.log('🎯 Category clicked:', categoryId);
     // Clear search when selecting category
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    const newUrl = `/markets?${newParams.toString()}`;
-    console.log('🔄 Navigating to:', newUrl);
-    setLocation(newUrl);
+    setLocation(`/markets?${newParams.toString()}`);
   }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
@@ -184,16 +181,6 @@ export function MarketsPage() {
   const showSearchResults = currentSearchQuery;
   const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
   
-  // Debug what's being displayed
-  console.log('🔍 DEBUG: Display Logic:', {
-    currentSelectedCategory,
-    currentSearchQuery,
-    showCategoryGrid,
-    showCategoryResults,
-    showSearchResults,
-    categoryResultsLength: categoryResults?.length || 0,
-    categoriesLength: categories?.length || 0
-  });
 
 
 
