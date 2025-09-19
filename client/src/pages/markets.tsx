@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react"; 
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,19 +50,32 @@ export function MarketsPage() {
   const [timeframe, setTimeframe] = useState("1M");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
 
-  // Use URL as single source of truth
-  const params = useMemo(() => new URLSearchParams(window.location.search), [location]);
+  // Parse query params from wouter location
+  const [pathname, search] = useMemo(() => {
+    const i = location.indexOf('?');
+    return i === -1 ? [location, ''] : [location.slice(0, i), location.slice(i)];
+  }, [location]);
+  
+  const params = useMemo(() => new URLSearchParams(search), [search]);
   const categoryId = params.get('category');
   const q = params.get('q') ?? '';
   
-  // Derived state for display - force reset if we navigate to plain /markets
+  // Derived state for display
   const currentSearchQuery = q;
   const currentSelectedCategory = categoryId;
   
-  // Force navigation to clean /markets if we detect parameters but location is /markets  
-  if (location === '/markets' && window.location.search && !q) {
-    window.location.href = '/markets';
-  }
+  // Helper function to update URL parameters
+  const updateParam = useCallback((key: string, value: string | null) => {
+    const newParams = new URLSearchParams(search);
+    if (value === null) {
+      newParams.delete(key);
+    } else {
+      newParams.set(key, value);
+    }
+    const newSearch = newParams.toString();
+    const newLocation = newSearch ? `${pathname}?${newSearch}` : pathname;
+    setLocation(newLocation);
+  }, [pathname, search, setLocation]);
   
 
 
@@ -136,9 +149,12 @@ export function MarketsPage() {
     enabled: !!categoryId && !q,
   });
 
-  const handleCategorySelect = (categoryId: string) => {
-    setLocation(`/markets?category=${categoryId}`);
-  };
+  const handleCategorySelect = useCallback((categoryId: string) => {
+    // Clear search when selecting category
+    const newParams = new URLSearchParams();
+    newParams.set('category', categoryId);
+    setLocation(`/markets?${newParams.toString()}`);
+  }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
     setLocation(`/item/${item.id}`);
@@ -334,8 +350,7 @@ export function MarketsPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    // Force complete URL reset
-                    window.location.href = '/markets';
+                    setLocation('/markets');
                   }}
                   data-testid="button-clear-category"
                 >
@@ -574,9 +589,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  window.location.href = '/markets';
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -914,9 +927,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  window.location.href = '/markets';
-                }}
+                onClick={() => setLocation('/markets')}
                 data-testid="button-clear-category"
               >
                 Show All Categories
