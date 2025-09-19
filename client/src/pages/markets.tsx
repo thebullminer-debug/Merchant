@@ -55,12 +55,14 @@ export function MarketsPage() {
   const categoryId = params.get('category');
   const q = params.get('q') ?? '';
   
-  // If we're on exactly /markets with no params, ensure categoryId is null
-  const cleanCategoryId = (location === '/markets' && !window.location.search) ? null : categoryId;
-  
-  // Derived state for display
+  // Derived state for display - force reset if we navigate to plain /markets
   const currentSearchQuery = q;
-  const currentSelectedCategory = cleanCategoryId;
+  const currentSelectedCategory = categoryId;
+  
+  // Force navigation to clean /markets if we detect parameters but location is /markets  
+  if (location === '/markets' && window.location.search && !q) {
+    window.location.href = '/markets';
+  }
   
 
 
@@ -117,12 +119,12 @@ export function MarketsPage() {
 
   // Analytics data query for Trading Cards dashboard
   const { data: analyticsData, isLoading: analyticsLoading } = useQuery<MarketAnalytics>({
-    queryKey: ["/api/analytics/market", cleanCategoryId, timeframe],
+    queryKey: ["/api/analytics/market", categoryId, timeframe],
     queryFn: async () => {
-      if (!cleanCategoryId) throw new Error("Category ID required");
+      if (!categoryId) throw new Error("Category ID required");
       
       const params = new URLSearchParams({
-        categoryId: cleanCategoryId,
+        categoryId: categoryId,
         period: timeframe,
         limit: "10"
       });
@@ -131,7 +133,7 @@ export function MarketsPage() {
       if (!response.ok) throw new Error("Failed to fetch analytics data");
       return response.json();
     },
-    enabled: !!cleanCategoryId && !q,
+    enabled: !!categoryId && !q,
   });
 
   const handleCategorySelect = (categoryId: string) => {
@@ -164,6 +166,7 @@ export function MarketsPage() {
   const showCategoryResults = currentSelectedCategory && !currentSearchQuery;
   const showSearchResults = currentSearchQuery;
   const showCategoryGrid = !currentSearchQuery && !currentSelectedCategory;
+
 
 
   // Category-specific section mapping
@@ -571,7 +574,9 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  window.location.href = '/markets';
+                }}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -909,7 +914,9 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => {
+                  window.location.href = '/markets';
+                }}
                 data-testid="button-clear-category"
               >
                 Show All Categories
