@@ -155,21 +155,13 @@ export function MarketsPage() {
 
   const handleCategorySelect = useCallback((categoryId: string) => {
     console.log('Navigating to category:', categoryId);
-    // Immediate navigation - no waiting for API calls
+    // Use direct window navigation since wouter is broken
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
     const newUrl = `/markets?${newParams.toString()}`;
-    console.log('Setting location to:', newUrl);
-    setLocation(newUrl);
-    
-    // Force page reload if wouter fails
-    setTimeout(() => {
-      if (window.location.search !== `?${newParams.toString()}`) {
-        console.log('Wouter failed, using window.location');
-        window.location.href = newUrl;
-      }
-    }, 100);
-  }, [setLocation]);
+    console.log('Forcing navigation to:', newUrl);
+    window.location.href = newUrl;
+  }, []);
 
   const handleItemClick = (item: MarketData) => {
     setLocation(`/item/${item.id}`);
