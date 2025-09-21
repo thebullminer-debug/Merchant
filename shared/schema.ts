@@ -1,7 +1,8 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, timestamp, integer, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, timestamp, integer, jsonb, index, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -94,6 +95,49 @@ export const watchlists = pgTable("watchlists", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Raw trade/transaction data for OHLCV aggregation
+export const ticks = pgTable("ticks", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull().$defaultFn(() => nanoid()),
+  collectibleId: varchar("collectible_id", { length: 255 }).notNull(),
+  sourceId: varchar("source_id", { length: 255 }).notNull(),
+  timestampUTC: timestamp("timestamp_utc").notNull(),
+  priceUSD: decimal("price_usd", { precision: 12, scale: 2 }).notNull(),
+  condition: text("condition"),
+  currency: text("currency").default("USD"),
+  feesIncluded: boolean("fees_included").default(false),
+  quantity: integer("quantity").default(1),
+  isEstimate: boolean("is_estimate").default(false),
+  listingUrl: text("listing_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  collectibleIdx: index("ticks_collectible_idx").on(table.collectibleId),
+  timestampIdx: index("ticks_timestamp_idx").on(table.timestampUTC),
+  sourceIdx: index("ticks_source_idx").on(table.sourceId),
+  uniqueTick: index("ticks_unique_idx").on(table.collectibleId, table.sourceId, table.timestampUTC, table.priceUSD),
+}));
+
+// OHLCV candle data for stock-style charts
+export const candles = pgTable("candles", {
+  id: varchar("id", { length: 255 }).primaryKey().notNull().$defaultFn(() => nanoid()),
+  collectibleId: varchar("collectible_id", { length: 255 }).notNull(),
+  startUTC: timestamp("start_utc").notNull(),
+  interval: text("interval").notNull(), // '5m', '1h', '4h', '1d', '1w', '1mo'
+  open: decimal("open", { precision: 12, scale: 2 }).notNull(),
+  high: decimal("high", { precision: 12, scale: 2 }).notNull(),
+  low: decimal("low", { precision: 12, scale: 2 }).notNull(),
+  close: decimal("close", { precision: 12, scale: 2 }).notNull(),
+  volume: decimal("volume", { precision: 15, scale: 2 }).default("0"),
+  observedCount: integer("observed_count").default(0),
+  interpolatedCount: integer("interpolated_count").default(0),
+  quality: text("quality").default("observed"), // 'observed', 'interpolated', 'aggregated'
+  calculatedAt: timestamp("calculated_at").defaultNow(),
+}, (table) => ({
+  collectibleIdx: index("candles_collectible_idx").on(table.collectibleId),
+  intervalIdx: index("candles_interval_idx").on(table.interval),
+  startIdx: index("candles_start_idx").on(table.startUTC),
+  uniqueCandle: index("candles_unique_idx").on(table.collectibleId, table.interval, table.startUTC),
+}));
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   watchlists: many(watchlists),
@@ -111,6 +155,8 @@ export const collectiblesRelations = relations(collectibles, ({ one, many }) => 
   priceHistory: many(priceHistory),
   medianPrices: many(medianPrices),
   watchlists: many(watchlists),
+  ticks: many(ticks),
+  candles: many(candles),
 }));
 
 export const priceHistoryRelations = relations(priceHistory, ({ one }) => ({
@@ -142,6 +188,24 @@ export const watchlistsRelations = relations(watchlists, ({ one }) => ({
   }),
   collectible: one(collectibles, {
     fields: [watchlists.collectibleId],
+    references: [collectibles.id],
+  }),
+}));
+
+export const ticksRelations = relations(ticks, ({ one }) => ({
+  collectible: one(collectibles, {
+    fields: [ticks.collectibleId],
+    references: [collectibles.id],
+  }),
+  source: one(priceSources, {
+    fields: [ticks.sourceId],
+    references: [priceSources.id],
+  }),
+}));
+
+export const candlesRelations = relations(candles, ({ one }) => ({
+  collectible: one(collectibles, {
+    fields: [candles.collectibleId],
     references: [collectibles.id],
   }),
 }));
@@ -182,6 +246,16 @@ export const insertWatchlistSchema = createInsertSchema(watchlists).omit({
   createdAt: true,
 });
 
+export const insertTickSchema = createInsertSchema(ticks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCandleSchema = createInsertSchema(candles).omit({
+  id: true,
+  calculatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -203,6 +277,12 @@ export type InsertMedianPrice = z.infer<typeof insertMedianPriceSchema>;
 
 export type Watchlist = typeof watchlists.$inferSelect;
 export type InsertWatchlist = z.infer<typeof insertWatchlistSchema>;
+
+export type Tick = typeof ticks.$inferSelect;
+export type InsertTick = z.infer<typeof insertTickSchema>;
+
+export type Candle = typeof candles.$inferSelect;
+export type InsertCandle = z.infer<typeof insertCandleSchema>;
 
 // Analytics types
 export const marketAnalyticsSchema = z.object({
