@@ -154,12 +154,10 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
-    console.log('Navigating to category:', categoryId);
-    // Use direct window navigation since wouter is broken
+    // Use direct window navigation for reliable category switching
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
     const newUrl = `/markets?${newParams.toString()}`;
-    console.log('Forcing navigation to:', newUrl);
     window.location.href = newUrl;
   }, []);
 
@@ -486,11 +484,9 @@ export function MarketsPage() {
                     <Card
                       key={category.id}
                       className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden relative z-10"
-                      style={{ pointerEvents: 'auto' }}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('Category clicked:', category.id);
                         handleCategorySelect(category.id);
                       }}
                       data-testid={`category-card-${category.id}`}
