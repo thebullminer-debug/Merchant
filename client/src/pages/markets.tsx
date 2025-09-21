@@ -482,8 +482,14 @@ export function MarketsPage() {
                   return (
                     <Card
                       key={category.id}
-                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden"
-                      onClick={() => handleCategorySelect(category.id)}
+                      className="bg-card border border-border card-hover cursor-pointer transition-all duration-200 group overflow-hidden relative z-10"
+                      style={{ pointerEvents: 'auto' }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Category clicked:', category.id);
+                        handleCategorySelect(category.id);
+                      }}
                       data-testid={`category-card-${category.id}`}
                     >
                       <CardContent className="p-6">
