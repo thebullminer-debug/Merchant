@@ -154,10 +154,21 @@ export function MarketsPage() {
   });
 
   const handleCategorySelect = useCallback((categoryId: string) => {
+    console.log('Navigating to category:', categoryId);
     // Immediate navigation - no waiting for API calls
     const newParams = new URLSearchParams();
     newParams.set('category', categoryId);
-    setLocation(`/markets?${newParams.toString()}`);
+    const newUrl = `/markets?${newParams.toString()}`;
+    console.log('Setting location to:', newUrl);
+    setLocation(newUrl);
+    
+    // Force page reload if wouter fails
+    setTimeout(() => {
+      if (window.location.search !== `?${newParams.toString()}`) {
+        console.log('Wouter failed, using window.location');
+        window.location.href = newUrl;
+      }
+    }, 100);
   }, [setLocation]);
 
   const handleItemClick = (item: MarketData) => {
