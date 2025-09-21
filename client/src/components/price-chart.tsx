@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -132,6 +132,28 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
     value: candle.c, // Use close price for chart
     quality: candle.quality
   })) || [];
+
+  // Smart fallback: Auto-select best available range when current selection isn't available
+  useEffect(() => {
+    if (candleData?.metadata?.availableRanges) {
+      const availableRanges = candleData.metadata.availableRanges;
+      const currentRangeAvailable = availableRanges.includes(selectedRangeLabel);
+      
+      if (!currentRangeAvailable) {
+        // Priority order: prefer longer time periods first, then ALL as fallback
+        const priorityOrder = ['5Y', '1Y', 'YTD', '6M', '3M', '1M', '7D', '1D', 'ALL'];
+        const bestAvailable = priorityOrder.find(range => availableRanges.includes(range)) || availableRanges[0];
+        
+        if (bestAvailable) {
+          const targetRange = timeRanges.find(r => r.label === bestAvailable);
+          if (targetRange) {
+            setSelectedRange(targetRange.days);
+            setSelectedRangeLabel(targetRange.label);
+          }
+        }
+      }
+    }
+  }, [candleData?.metadata?.availableRanges, selectedRangeLabel]);
 
   const { data: currentPrice } = useQuery<{ price: number; change: number; activeListings: number }>({
     queryKey: ["/api/collectibles", collectibleId, "current-price"],
@@ -375,20 +397,25 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
         {/* Data Quality and Controls */}
         <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex flex-wrap gap-2">
-            {timeRanges.map((range) => (
-              <Button
-                key={range.label}
-                variant={selectedRange === range.days ? "default" : "secondary"}
-                size="sm"
-                onClick={() => {
-                  setSelectedRange(range.days);
-                  setSelectedRangeLabel(range.label);
-                }}
-                data-testid={`time-range-${range.label}`}
-              >
-                {range.label}
-              </Button>
-            ))}
+            {timeRanges
+              .filter(range => 
+                // Show range if it's available in metadata, or if no metadata yet (loading state)
+                !candleData?.metadata || candleData.metadata.availableRanges.includes(range.label)
+              )
+              .map((range) => (
+                <Button
+                  key={range.label}
+                  variant={selectedRange === range.days ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => {
+                    setSelectedRange(range.days);
+                    setSelectedRangeLabel(range.label);
+                  }}
+                  data-testid={`time-range-${range.label}`}
+                >
+                  {range.label}
+                </Button>
+              ))}
           </div>
           
           <div className="flex items-center gap-4">
