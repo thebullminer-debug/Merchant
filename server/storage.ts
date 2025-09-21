@@ -660,10 +660,10 @@ export class DatabaseStorage implements IStorage {
     .from(priceHistory)
     .where(eq(priceHistory.collectibleId, collectibleId));
 
-    const tickEarliest = tickRange?.earliest;
-    const priceEarliest = priceRange?.earliest;
-    const tickLatest = tickRange?.latest;
-    const priceLatest = priceRange?.latest;
+    const tickEarliest = tickRange?.earliest ? new Date(tickRange.earliest) : null;
+    const priceEarliest = priceRange?.earliest ? new Date(priceRange.earliest) : null;
+    const tickLatest = tickRange?.latest ? new Date(tickRange.latest) : null;
+    const priceLatest = priceRange?.latest ? new Date(priceRange.latest) : null;
 
     let earliest: Date | null = null;
     let latest: Date | null = null;

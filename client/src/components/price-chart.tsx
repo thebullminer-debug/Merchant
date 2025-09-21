@@ -22,23 +22,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Info } from "lucide-react";
 import type { MedianPrice } from "@shared/schema";
 
-// New types for resampled data
-interface ResampledPoint {
-  date: string;
-  value: number;
-  quality: 'observed' | 'interpolated' | 'aggregated';
-}
-
-interface ResamplingMetadata {
+// OHLCV candle data types (stock exchange format)
+interface CandleData {
+  t: number;  // timestamp (Unix)
+  o: number;  // open price
+  h: number;  // high price
+  l: number;  // low price
+  c: number;  // close price
+  v: number;  // volume
+  quality: 'observed' | 'interpolated';
   observedCount: number;
   interpolatedCount: number;
-  earliestObserved: string;
-  latestObserved: string;
 }
 
-interface ResampledSeries {
-  data: ResampledPoint[];
-  metadata: ResamplingMetadata;
+interface CandleMetadata {
+  spanDays: number;
+  availableRanges: string[];
+  earliest: string;
+  latest: string;
+  interval: string;
+  includeEstimates: boolean;
+}
+
+interface CandleSeries {
+  data: CandleData[];
+  metadata: CandleMetadata;
 }
 
 // Vertical crosshair plugin
@@ -81,16 +89,17 @@ interface PriceChartProps {
   collectibleName: string;
 }
 
+// Stock exchange standard time intervals 
 const timeRanges = [
-  { label: "1D", days: 1 },
-  { label: "7D", days: 7 },
-  { label: "1M", days: 30 },
-  { label: "3M", days: 90 },
-  { label: "6M", days: 180 },
-  { label: "YTD", days: 366 }, // Year to date - distinct from 1Y
-  { label: "1Y", days: 365 },
-  { label: "5Y", days: 1825 },
-  { label: "ALL", days: 999 },
+  { label: "1D", interval: "1d", days: 1 },
+  { label: "7D", interval: "1d", days: 7 },
+  { label: "1M", interval: "1d", days: 30 },
+  { label: "3M", interval: "1d", days: 90 },
+  { label: "6M", interval: "1d", days: 180 },
+  { label: "YTD", interval: "1d", days: 366 },
+  { label: "1Y", interval: "1d", days: 365 },
+  { label: "5Y", interval: "1d", days: 1825 },
+  { label: "ALL", interval: "1d", days: 999 },
 ];
 
 export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) {
@@ -99,25 +108,30 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
   const [includeEstimates, setIncludeEstimates] = useState(false); // Default to only real recorded prices
   const [forceLineMode, setForceLineMode] = useState(false); // User can override auto scatter mode
 
-  // Use the new resampled endpoint
-  const { data: resampledData, isLoading } = useQuery<ResampledSeries>({
-    queryKey: ["/api/collectibles", collectibleId, "prices/resampled", selectedRange, selectedRangeLabel, includeEstimates],
+  // Use the new OHLCV candles endpoint - stock exchange quality
+  const { data: candleData, isLoading } = useQuery<CandleSeries>({
+    queryKey: ["/api/collectibles", collectibleId, "prices/candles", selectedRangeLabel, includeEstimates],
     queryFn: async () => {
+      const selectedTimeRange = timeRanges.find(r => r.label === selectedRangeLabel);
       const params = new URLSearchParams({
-        days: selectedRange.toString(),
+        interval: selectedTimeRange?.interval || '1d',
+        range: selectedRangeLabel,
         includeEstimates: includeEstimates.toString(),
-        ...(selectedRangeLabel === 'YTD' && { range: 'ytd' })
       });
       
-      const response = await fetch(`/api/collectibles/${collectibleId}/prices/resampled?${params}`);
-      if (!response.ok) throw new Error("Failed to fetch resampled price data");
+      const response = await fetch(`/api/collectibles/${collectibleId}/prices/candles?${params}`);
+      if (!response.ok) throw new Error("Failed to fetch candle data");
       return response.json();
     },
     enabled: !!collectibleId,
   });
   
-  // Extract price data from resampled response
-  const priceData = resampledData?.data || [];
+  // Extract OHLCV candle data - use close prices for line chart
+  const priceData = candleData?.data?.map(candle => ({
+    date: new Date(candle.t * 1000).toISOString(), // Convert Unix timestamp to ISO
+    value: candle.c, // Use close price for chart
+    quality: candle.quality
+  })) || [];
 
   const { data: currentPrice } = useQuery<{ price: number; change: number; activeListings: number }>({
     queryKey: ["/api/collectibles", collectibleId, "current-price"],
@@ -379,11 +393,11 @@ export function PriceChart({ collectibleId, collectibleName }: PriceChartProps) 
           
           <div className="flex items-center gap-4">
             {/* Data Quality Badge */}
-            {resampledData?.metadata && (
+            {candleData?.metadata && (
               <div className="flex items-center gap-2">
                 <Info size={16} className="text-muted-foreground" />
                 <Badge variant="outline">
-                  {resampledData.metadata.observedCount} observed, {resampledData.metadata.interpolatedCount} estimated
+                  {candleData.metadata.spanDays} day span available
                 </Badge>
               </div>
             )}
