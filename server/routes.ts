@@ -559,6 +559,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OHLCV aggregation endpoints
+  app.post("/api/admin/aggregate-ohlcv", async (req, res) => {
+    try {
+      const { candleAggregatorService } = await import("./services/candle-aggregator");
+      await candleAggregatorService.aggregateAllCollectibles();
+      res.json({ success: true, message: "OHLCV aggregation completed for all collectibles" });
+    } catch (error) {
+      console.error("OHLCV aggregation error:", error);
+      res.status(500).json({ message: "Failed to aggregate OHLCV data" });
+    }
+  });
+
+  app.post("/api/collectibles/:id/aggregate-ohlcv", async (req, res) => {
+    try {
+      const { interval = '1d' } = req.body;
+      const { candleAggregatorService } = await import("./services/candle-aggregator");
+      await candleAggregatorService.aggregateHistoricalData(req.params.id, interval);
+      res.json({ success: true, message: `OHLCV aggregation completed for interval ${interval}` });
+    } catch (error) {
+      console.error("OHLCV aggregation error:", error);
+      res.status(500).json({ message: "Failed to aggregate OHLCV data" });
+    }
+  });
+
   // Real-time price update endpoint
   app.post("/api/collectibles/:id/update-price", async (req, res) => {
     try {
