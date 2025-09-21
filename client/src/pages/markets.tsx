@@ -277,7 +277,7 @@ export function MarketsPage() {
                         if (value === "all") {
                           setLocation('/markets');
                         } else {
-                          setLocation(`/markets?category=${value}`);
+                          window.location.href = `/markets?category=${value}`;
                         }
                       }}>
                         <SelectTrigger>
@@ -358,7 +358,7 @@ export function MarketsPage() {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setLocation('/markets');
+                    window.location.href = '/markets';
                   }}
                   data-testid="button-clear-category"
                 >
@@ -611,7 +611,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => window.location.href = '/markets'}
                 data-testid="button-show-all-categories"
                 className="flex items-center gap-2"
               >
@@ -949,7 +949,7 @@ export function MarketsPage() {
               </div>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/markets')}
+                onClick={() => window.location.href = '/markets'}
                 data-testid="button-clear-category"
               >
                 Show All Categories
