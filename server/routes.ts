@@ -104,6 +104,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OHLCV Candles endpoint for stock exchange quality charts
+  app.get("/api/collectibles/:id/prices/candles", async (req, res) => {
+    try {
+      const { interval = '1d', from, to, includeEstimates = 'false' } = req.query;
+      
+      // Validate interval
+      const validIntervals = ['5m', '1h', '4h', '1d', '1w', '1mo'];
+      if (!validIntervals.includes(interval as string)) {
+        return res.status(400).json({ message: "Invalid interval. Must be one of: " + validIntervals.join(', ') });
+      }
+
+      // Get data range and apply fallback logic
+      const dataRange = await storage.getAvailableDataRange(req.params.id);
+      
+      let startDate: Date, endDate: Date;
+      
+      if (from && to) {
+        startDate = new Date(from as string);
+        endDate = new Date(to as string);
+      } else {
+        // Smart fallback based on available data
+        if (!dataRange.earliest || !dataRange.latest) {
+          return res.json({ 
+            data: [], 
+            metadata: { 
+              spanDays: 0, 
+              availableRanges: [], 
+              message: "No price data available" 
+            } 
+          });
+        }
+        
+        startDate = dataRange.earliest;
+        endDate = dataRange.latest;
+      }
+
+      // Get candles (this will be empty initially, needs aggregation service)
+      const candleData = await storage.getCandles(req.params.id, interval as string, startDate, endDate);
+      
+      // Calculate available time ranges based on data span
+      const availableRanges = [];
+      if (dataRange.spanDays >= 1) availableRanges.push('1D');
+      if (dataRange.spanDays >= 7) availableRanges.push('7D');
+      if (dataRange.spanDays >= 30) availableRanges.push('1M');
+      if (dataRange.spanDays >= 90) availableRanges.push('3M');
+      if (dataRange.spanDays >= 180) availableRanges.push('6M');
+      if (dataRange.spanDays >= 365) availableRanges.push('1Y');
+      if (dataRange.spanDays >= 1825) availableRanges.push('5Y');
+      availableRanges.push('ALL');
+
+      res.json({
+        data: candleData.map(candle => ({
+          t: Math.floor(new Date(candle.startUTC).getTime() / 1000), // Unix timestamp
+          o: Number(candle.open),
+          h: Number(candle.high),
+          l: Number(candle.low),
+          c: Number(candle.close),
+          v: Number(candle.volume),
+          quality: candle.quality,
+          observedCount: candle.observedCount,
+          interpolatedCount: candle.interpolatedCount
+        })),
+        metadata: {
+          spanDays: dataRange.spanDays,
+          availableRanges,
+          earliest: dataRange.earliest?.toISOString(),
+          latest: dataRange.latest?.toISOString(),
+          interval: interval as string,
+          includeEstimates: includeEstimates === 'true'
+        }
+      });
+    } catch (error) {
+      console.error("Candles API error:", error);
+      res.status(500).json({ message: "Failed to fetch candle data" });
+    }
+  });
+
   // Price data
   app.get("/api/collectibles/:id/prices", async (req, res) => {
     try {
@@ -442,6 +519,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Market analytics error:", error);
       res.status(500).json({ message: "Failed to fetch market analytics" });
+    }
+  });
+
+  // Ingestion API for external scraping engines
+  app.post("/api/ingest/ticks", async (req, res) => {
+    try {
+      const { sourceId, collectibleId, ticks: ticksData } = req.body;
+      
+      if (!sourceId || !collectibleId || !Array.isArray(ticksData)) {
+        return res.status(400).json({ message: "Missing required fields: sourceId, collectibleId, ticks[]" });
+      }
+
+      // Validate and process ticks
+      const processedTicks = ticksData.map((tick: any) => ({
+        collectibleId,
+        sourceId,
+        timestampUTC: new Date(tick.timestamp),
+        priceUSD: tick.price.toString(),
+        condition: tick.condition,
+        currency: tick.currency || 'USD',
+        feesIncluded: tick.feesIncluded || false,
+        quantity: tick.quantity || 1,
+        isEstimate: tick.isEstimate || false,
+        listingUrl: tick.listingUrl
+      }));
+
+      // Insert ticks
+      const insertedTicks = await storage.addTicks(processedTicks);
+      
+      res.json({ 
+        success: true, 
+        ticksInserted: insertedTicks.length,
+        message: `Successfully processed ${insertedTicks.length} price ticks`
+      });
+    } catch (error) {
+      console.error("Tick ingestion error:", error);
+      res.status(500).json({ message: "Failed to process price ticks" });
     }
   });
 

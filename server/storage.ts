@@ -1,12 +1,14 @@
 import { 
-  users, collectibles, categories, priceHistory, medianPrices, watchlists, priceSources,
+  users, collectibles, categories, priceHistory, medianPrices, watchlists, priceSources, ticks, candles,
   type User, type InsertUser, 
   type Collectible, type InsertCollectible,
   type Category, type InsertCategory,
   type PriceHistory, type InsertPriceHistory,
   type MedianPrice, type InsertMedianPrice,
   type PriceSource, type InsertPriceSource,
-  type Watchlist, type InsertWatchlist
+  type Watchlist, type InsertWatchlist,
+  type Tick, type InsertTick,
+  type Candle, type InsertCandle
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, gte, lte, lt, sql, count } from "drizzle-orm";
@@ -38,6 +40,13 @@ export interface IStorage {
   addMedianPrice(medianPrice: InsertMedianPrice): Promise<MedianPrice>;
   bulkInsertMedianPrices(prices: InsertMedianPrice[]): Promise<MedianPrice[]>;
   getCurrentPrice(collectibleId: string): Promise<{ price: number, change: number, activeListings: number } | null>;
+  
+  // OHLCV operations
+  addTick(tick: InsertTick): Promise<Tick>;
+  addTicks(ticks: InsertTick[]): Promise<Tick[]>;
+  getCandles(collectibleId: string, interval: string, startDate: Date, endDate: Date): Promise<Candle[]>;
+  addCandle(candle: InsertCandle): Promise<Candle>;
+  getAvailableDataRange(collectibleId: string): Promise<{ earliest: Date | null, latest: Date | null, spanDays: number }>;
   
   // Price source operations
   getPriceSources(): Promise<PriceSource[]>;
@@ -605,6 +614,76 @@ export class DatabaseStorage implements IStorage {
     }));
 
     return { brands, sports, eras };
+  }
+
+  // OHLCV implementations
+  async addTick(tick: InsertTick): Promise<Tick> {
+    const [newTick] = await db.insert(ticks).values(tick).returning();
+    return newTick;
+  }
+
+  async addTicks(tickData: InsertTick[]): Promise<Tick[]> {
+    if (tickData.length === 0) return [];
+    return await db.insert(ticks).values(tickData).returning();
+  }
+
+  async getCandles(collectibleId: string, interval: string, startDate: Date, endDate: Date): Promise<Candle[]> {
+    return await db.select()
+      .from(candles)
+      .where(and(
+        eq(candles.collectibleId, collectibleId),
+        eq(candles.interval, interval),
+        gte(candles.startUTC, startDate),
+        lte(candles.startUTC, endDate)
+      ))
+      .orderBy(asc(candles.startUTC));
+  }
+
+  async addCandle(candle: InsertCandle): Promise<Candle> {
+    const [newCandle] = await db.insert(candles).values(candle).returning();
+    return newCandle;
+  }
+
+  async getAvailableDataRange(collectibleId: string): Promise<{ earliest: Date | null, latest: Date | null, spanDays: number }> {
+    // Check both ticks and price_history for data range
+    const [tickRange] = await db.select({
+      earliest: sql<Date>`MIN(${ticks.timestampUTC})`,
+      latest: sql<Date>`MAX(${ticks.timestampUTC})`
+    })
+    .from(ticks)
+    .where(eq(ticks.collectibleId, collectibleId));
+
+    const [priceRange] = await db.select({
+      earliest: sql<Date>`MIN(${priceHistory.scrapedAt})`,
+      latest: sql<Date>`MAX(${priceHistory.scrapedAt})`
+    })
+    .from(priceHistory)
+    .where(eq(priceHistory.collectibleId, collectibleId));
+
+    const tickEarliest = tickRange?.earliest;
+    const priceEarliest = priceRange?.earliest;
+    const tickLatest = tickRange?.latest;
+    const priceLatest = priceRange?.latest;
+
+    let earliest: Date | null = null;
+    let latest: Date | null = null;
+
+    if (tickEarliest && priceEarliest) {
+      earliest = tickEarliest < priceEarliest ? tickEarliest : priceEarliest;
+    } else {
+      earliest = tickEarliest || priceEarliest;
+    }
+
+    if (tickLatest && priceLatest) {
+      latest = tickLatest > priceLatest ? tickLatest : priceLatest;
+    } else {
+      latest = tickLatest || priceLatest;
+    }
+
+    const spanDays = earliest && latest ? 
+      Math.ceil((latest.getTime() - earliest.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+    return { earliest, latest, spanDays };
   }
 }
 
