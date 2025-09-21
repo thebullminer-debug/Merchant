@@ -28,9 +28,17 @@ export function Header() {
 
           {/* Navigation Links - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/markets" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-markets">
+            <a 
+              href="/markets" 
+              className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer" 
+              data-testid="nav-markets"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/markets';
+              }}
+            >
               Markets
-            </Link>
+            </a>
             <Link href="/watchlist" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-watchlist">
               Watchlist
             </Link>
@@ -62,9 +70,18 @@ export function Header() {
               <SearchBar />
             </div>
             <nav className="flex flex-col space-y-2">
-              <Link href="/markets" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-markets-mobile">
+              <a 
+                href="/markets" 
+                className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer" 
+                data-testid="nav-markets-mobile"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/markets';
+                  setIsMobileMenuOpen(false);
+                }}
+              >
                 Markets
-              </Link>
+              </a>
               <Link href="/watchlist" className="px-2 py-2 text-muted-foreground hover:text-foreground transition-colors" data-testid="nav-watchlist-mobile">
                 Watchlist
               </Link>
