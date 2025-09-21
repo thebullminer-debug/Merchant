@@ -130,7 +130,7 @@ export class MarketplaceScraperService {
                 price: data.price.toString(),
                 source: data.source,
                 condition: data.condition,
-                createdAt: data.soldDate || new Date()
+                scraped_at: data.soldDate || new Date()
               });
             } catch (insertError) {
               // Skip if duplicate entry
@@ -141,14 +141,14 @@ export class MarketplaceScraperService {
           // Update median price
           await db.insert(medianPrices).values({
             collectibleId: collectible.id,
-            medianPrice: medianPrice.toString(),
-            priceDate: new Date(),
-            dataPoints: marketData.length
+            median_price: medianPrice.toString(),
+            date: new Date(),
+            active_listings: marketData.length
           }).onConflictDoUpdate({
             target: [medianPrices.collectibleId, medianPrices.priceDate],
             set: {
-              medianPrice: medianPrice.toString(),
-              dataPoints: marketData.length,
+              median_price: medianPrice.toString(),
+              active_listings: marketData.length,
               updatedAt: new Date()
             }
           });
@@ -179,7 +179,7 @@ export class MarketplaceScraperService {
       .select()
       .from(priceHistory)
       .where(eq(priceHistory.collectibleId, collectibleId))
-      .orderBy(desc(priceHistory.createdAt))
+      .orderBy(desc(priceHistory.scraped_at))
       .limit(50);
 
     // Get latest median price
@@ -187,7 +187,7 @@ export class MarketplaceScraperService {
       .select()
       .from(medianPrices)
       .where(eq(medianPrices.collectibleId, collectibleId))
-      .orderBy(desc(medianPrices.priceDate))
+      .orderBy(desc(medianPrices.date))
       .limit(1);
 
     return {
@@ -218,11 +218,11 @@ export class MarketplaceScraperService {
       for (const data of marketData) {
         try {
           await db.insert(priceHistory).values({
-            collectibleId: item.id,
+            collectible_id: item.id,
             price: data.price.toString(),
             source: data.source,
             condition: data.condition,
-            createdAt: data.soldDate || new Date()
+            scraped_at: data.soldDate || new Date()
           });
         } catch {
           continue;
@@ -234,17 +234,17 @@ export class MarketplaceScraperService {
       const medianPrice = prices[Math.floor(prices.length / 2)];
 
       await db.insert(medianPrices).values({
-        collectibleId: item.id,
-        medianPrice: medianPrice.toString(),
-        priceDate: new Date(),
-        dataPoints: marketData.length
+        collectible_id: item.id,
+        median_price: medianPrice.toString(),
+        date: new Date(),
+        active_listings: marketData.length
       });
 
       return {
         success: true,
         currentPrice: marketData[0].price,
         medianPrice,
-        dataPoints: marketData.length
+        active_listings: marketData.length
       };
     }
 
