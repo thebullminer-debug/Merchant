@@ -55,9 +55,23 @@ All commands that follow are typed into that terminal window. If a command spans
    cd merchant
    ```
    Replace the URL with the location of your fork if you are contributing.
-4. **Install project dependencies.** From the repository root (the same folder that contains `package.json`), run `npm install`. This downloads all JavaScript and TypeScript packages the monorepo relies on. If you receive an error about permissions on macOS or Linux, avoid running with `sudo`; instead ensure your Node installation owns the global npm cache or reinstall via a version manager.
+4. **Install project dependencies.** From the repository root (the same folder that contains `package.json`), run `npm install`. This downloads all JavaScript and TypeScript packages the monorepo relies on. If you receive an error about permissions on macOS or Linux, avoid running with `sudo`; instead ensure your Node installation owns the global npm cache or reinstall via a version manager. During installation, npm may warn about known vulnerabilities and suggest running `npm audit fix`. That command attempts to rewrite `package-lock.json` to bump dependencies. **Do not commit those changes unless the team has approved a dependency upgrade**—audit fixes can introduce breaking changes or drift from the lockfile reviewed by maintainers. It is safe to keep working with the existing lockfile while the team triages the advisories.
 5. **Configure environment variables.** Copy the example file to `.env` with `cp .env.example .env` (macOS/Linux) or `copy .env.example .env` (Windows PowerShell). Edit the new `.env` and provide a valid `DATABASE_URL`, e.g. `postgres://username:password@localhost:5432/merchant`.
-6. **Create the database schema.** Run `npm run db:push`. This command uses Drizzle to connect to the database referenced by `DATABASE_URL` and create the required tables. If the command fails, double-check that PostgreSQL is running and that the URL matches your local credentials.
+6. **Create the database schema.** Run `npm run db:push`. This command uses Drizzle to connect to the database referenced by `DATABASE_URL` and create the required tables. If you see `error: database "merchant" does not exist`, create it first:
+   - **Windows (PowerShell)**
+     ```powershell
+     psql -U postgres
+     CREATE DATABASE merchant;
+     \q
+     ```
+     Replace `postgres` with the PostgreSQL superuser you configured during installation. If `psql` is not on your `PATH`, run it from `"C:\\Program Files\\PostgreSQL\\<version>\\bin"` or add that directory to your environment variables.
+   - **macOS/Linux**
+     ```bash
+     createdb merchant   # uses your OS user by default
+     # or, if you prefer psql:
+     psql -U postgres -c "CREATE DATABASE merchant;"
+     ```
+   After the database exists and PostgreSQL is running, re-run `npm run db:push`.
 7. **Seed sample data (optional but recommended).** Execute one of the provided scripts to load demo collectibles:
    ```bash
    npx tsx server/simple-seed.ts        # general-purpose sample data
