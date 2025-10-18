@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import type { Browser } from 'puppeteer';
 import { collectibles } from '@shared/schema';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
@@ -11,7 +12,7 @@ interface MarketplaceImage {
 }
 
 export class ImageScraperService {
-  private browser: puppeteer.Browser | null = null;
+  private browser: Browser | null = null;
 
   async init() {
     this.browser = await puppeteer.launch({

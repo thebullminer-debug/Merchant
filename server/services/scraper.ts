@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import type { Browser } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import { storage } from '../storage';
 import { InsertPriceHistory } from '@shared/schema';
@@ -12,7 +13,7 @@ interface ScrapedPrice {
 }
 
 export class CollectibleScraper {
-  private browser: puppeteer.Browser | null = null;
+  private browser: Browser | null = null;
 
   async initialize() {
     this.browser = await puppeteer.launch({

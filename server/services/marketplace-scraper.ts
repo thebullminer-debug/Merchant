@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import type { Browser } from 'puppeteer';
 import { collectibles, priceHistory, medianPrices } from '@shared/schema';
 import { db } from '../db';
 import { eq, desc } from 'drizzle-orm';
@@ -12,7 +13,7 @@ interface MarketplaceData {
 }
 
 export class MarketplaceScraperService {
-  private browser: puppeteer.Browser | null = null;
+  private browser: Browser | null = null;
 
   async init() {
     this.browser = await puppeteer.launch({
@@ -130,7 +131,7 @@ export class MarketplaceScraperService {
                 price: data.price.toString(),
                 source: data.source,
                 condition: data.condition,
-                scraped_at: data.soldDate || new Date()
+                scrapedAt: data.soldDate || new Date()
               });
             } catch (insertError) {
               // Skip if duplicate entry
@@ -141,17 +142,10 @@ export class MarketplaceScraperService {
           // Update median price
           await db.insert(medianPrices).values({
             collectibleId: collectible.id,
-            median_price: medianPrice.toString(),
+            medianPrice: medianPrice.toString(),
             date: new Date(),
-            active_listings: marketData.length
-          }).onConflictDoUpdate({
-            target: [medianPrices.collectibleId, medianPrices.priceDate],
-            set: {
-              median_price: medianPrice.toString(),
-              active_listings: marketData.length,
-              updatedAt: new Date()
-            }
-          });
+            activeListings: marketData.length
+          }).onConflictDoNothing();
 
           console.log(`Updated ${collectible.name}: Current $${currentPrice}, Median $${medianPrice} from ${marketData.length} sales`);
         }
@@ -179,7 +173,7 @@ export class MarketplaceScraperService {
       .select()
       .from(priceHistory)
       .where(eq(priceHistory.collectibleId, collectibleId))
-      .orderBy(desc(priceHistory.scraped_at))
+      .orderBy(desc(priceHistory.scrapedAt))
       .limit(50);
 
     // Get latest median price
@@ -218,11 +212,11 @@ export class MarketplaceScraperService {
       for (const data of marketData) {
         try {
           await db.insert(priceHistory).values({
-            collectible_id: item.id,
+            collectibleId: item.id,
             price: data.price.toString(),
             source: data.source,
             condition: data.condition,
-            scraped_at: data.soldDate || new Date()
+            scrapedAt: data.soldDate || new Date()
           });
         } catch {
           continue;
@@ -234,17 +228,17 @@ export class MarketplaceScraperService {
       const medianPrice = prices[Math.floor(prices.length / 2)];
 
       await db.insert(medianPrices).values({
-        collectible_id: item.id,
-        median_price: medianPrice.toString(),
+        collectibleId: item.id,
+        medianPrice: medianPrice.toString(),
         date: new Date(),
-        active_listings: marketData.length
-      });
+        activeListings: marketData.length
+      }).onConflictDoNothing();
 
       return {
         success: true,
         currentPrice: marketData[0].price,
         medianPrice,
-        active_listings: marketData.length
+        activeListings: marketData.length
       };
     }
 

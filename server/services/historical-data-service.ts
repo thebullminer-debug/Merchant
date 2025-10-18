@@ -234,7 +234,7 @@ export class HistoricalDataService {
 
     try {
       // Classic cars have unique appreciation patterns
-      const year = collectible.year;
+      const year = collectible.year ?? undefined;
       const brand = collectible.brand?.toLowerCase();
       
       const ageAppreciationRate = this.getCarAgeAppreciationRate(year);
