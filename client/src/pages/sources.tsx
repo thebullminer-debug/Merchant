@@ -60,7 +60,17 @@ export default function SourcesPage() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  const { data: queueStatus } = useQuery({
+  interface QueueStatus {
+    activeJobs: number;
+    pendingJobs: number;
+    queueByPriority?: {
+      critical?: number;
+      high?: number;
+      medium?: number;
+    };
+  }
+
+  const { data: queueStatus } = useQuery<QueueStatus>({
     queryKey: ["/api/scraping/queue"],
     refetchInterval: 5000, // Refresh every 5 seconds
   });
@@ -130,7 +140,7 @@ export default function SourcesPage() {
         </div>
 
         {/* Queue Status */}
-        {queueStatus && (
+        {queueStatus ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -163,7 +173,7 @@ export default function SourcesPage() {
               </div>
             </CardContent>
           </Card>
-        )}
+        ) : null}
 
         {/* Category Filter */}
         <div className="flex flex-wrap gap-2">
