@@ -73,3 +73,72 @@ While authentication components are present in the UI, the current implementatio
 - **Replit Integration**: Development environment optimization with Replit-specific plugins and banners
 
 The application is designed to scale with additional marketplace integrations and supports real-time price tracking across multiple collectible categories with comprehensive historical data retention and analysis capabilities.
+
+# Replit Dependency Removal Instructions
+🏠 Steps to Run CollectiMarket on Your PC (Without Replit)
+## 1. Remove Replit-Specific Dependencies
+In package.json, remove these lines:
+```
+"@replit/vite-plugin-cartographer": "^0.3.0",
+"@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+```
+In vite.config.ts, replace lines 1-17 with:
+```
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+export default defineConfig({
+  plugins: [react()],
+  // ... rest stays the same
+```
+## 2. Set Up Local PostgreSQL Database
+Install PostgreSQL on your PC:
+
+**Windows:** (Download from postgresql.org)
+
+**Mac:** ```brew install postgresql```
+
+**Linux:** ```sudo apt install postgresql```
+
+Create a database:
+```
+createdb collectimarket
+```
+Set environment variable in .env file:
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/collectimarket
+NODE_ENV=development
+```
+## 3. Install & Run
+On your PC:
+
+### Install dependencies
+```npm install```
+### Push database schema
+```npm run db:push```
+### Start development
+```npm run dev```
+
+That's it! Your CollectiMarket will run on http://localhost:5000
+
+## 4. Optional: Replace Neon with Local PostgreSQL
+If you want to remove Neon dependency entirely:
+
+In server/db.ts, you might need to replace:
+```
+import { neon } from '@neondatabase/serverless';
+```
+With standard PostgreSQL client:
+```
+import pg from 'pg';
+```
+## 📋 Summary:
+* Remove 2 Replit plugins from package.json
+* Update vite.config.ts (remove Replit imports)
+* Install PostgreSQL locally
+* Create .env file with DATABASE_URL
+* Run npm install && npm run db:push && npm run dev
+
+Your CollectiMarket will be 100% independent and run perfectly on your PC!
+
+
